@@ -1,16 +1,20 @@
-<?php require('../../../wp-blog-header.php'); ?>
-
 <?php
-require_once 'connection.php';
+define('WP_USE_THEMES', false);
+require($_SERVER['DOCUMENT_ROOT'] . '/wp-load.php');
+
+$servername = "localhost:3306";
+$username = "tcn_results";
+$password = "BtccWtcr2020!";
+$dbname = "tcn_results";
 
 // Create connection
 $conn = mysqli_connect($servername, $username, $password, $dbname);
 
 // Check connection
 if (!$conn) {
-	die("Connection failed: " . mysqli_connect_error());
+    die("Connection failed: " . mysqli_connect_error());
 }
-mysqli_set_charset($conn,"utf8");
+mysqli_set_charset($conn, "utf8");
 
 $sid = $_GET['series'];
 $sid = mysqli_real_escape_string($conn, $sid);
@@ -284,7 +288,7 @@ table#nat-table td.rownums:before
 
 				<div class="clearfix"></div>
 
-				<a href='../../'><?php bloginfo('name'); ?></a> >> Statistics &raquo; <?php echo $sid ?> &raquo; Race wins by driver
+				<a href='../../'><?php bloginfo('name'); ?></a> &raquo; Database &raquo; <?php echo $sid ?> &raquo; Race wins by driver
 				
 				<h4 class="h4h"><?php echo $sid ?> race wins - Drivers</h4>
 				
@@ -306,7 +310,7 @@ table#nat-table td.rownums:before
 						// output data of each row
 						while($row = mysqli_fetch_assoc($result)) {
 							// echo "<tr><td>" . $row["rank"]. "</td><td>" . $row["driver"]. "</td><td>" . $row["sessions"]. "</td></tr>";
-							echo "<tr><td class='rownums'></td><td><img src='../../flag/" . $row["image"] . ".gif' />&nbsp;<a href='../lists/driver-wins.php?series=" . $sid . "&driver=" .$row["driver"] . "'>" . $row["driver"]. "</a></td><td>" . $row["Wins"]. "</td><td>" . $row["Races"]. "</td><td>" . $row["Percent"]. "</tr>";
+							echo "<tr><td class='rownums'></td><td><img src='../results/flag/" . $row["image"] . ".gif' />&nbsp;<a href='../results/statistics/lists/driver-wins.php?series=" . urlencode($sid) . "&driver=" .urlencode($row["driver"]) . "'>" . $row["driver"]. "</a></td><td>" . $row["Wins"]. "</td><td>" . $row["Races"]. "</td><td>" . $row["Percent"]. "</tr>";
 						}
 						} else {
 							echo "0 results";
