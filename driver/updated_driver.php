@@ -13,7 +13,9 @@ mysqli_set_charset($conn, "utf8");
 
 $name = '';
 if (isset($_GET['name'])) {
-	$name = $_GET['name'];
+	$name = $_GET['name'];	
+	// $name = mysqli_real_escape_string($conn, $name);
+	// echo $name; exit;
 }
 
 function get_classname($val)
@@ -201,7 +203,7 @@ ksort($full_data);
 
 <head profile="http://gmpg.org/xfn/11">
 	<meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php bloginfo('charset'); ?>" />
-	<title><?php bloginfo('name'); ?> &raquo; Database &raquo; <?php echo ucwords(strtolower($name)); ?> Race Wins</title>
+	<title><?php bloginfo('name'); ?> &raquo; Database &raquo; <?php echo stripslashes(ucwords(strtolower($name))); ?> Race Wins</title>
 </head>
 
 <style>
@@ -375,11 +377,11 @@ ksort($full_data);
 				<div class="td-post-header td-pb-padding-side">
 					<a href='/'><?php bloginfo('name'); ?></a>
 					&raquo;Statistics&raquo;
-					<?php echo ucwords(strtolower($name)); ?> race results
+					<?php echo stripslashes(ucwords(strtolower($name))); ?> race results
 
 					<div class="td_block_wrap tdb_title tdi_78_07e tdb-single-title td-pb-border-top td_block_template_1" style="margin-bottom: 0px;">
 						<div class="tdb-block-inner td-fix-index">
-							<h1 class='tdb-title-text' style="font-family: Oxygen; font-size: 32px; font-weight: 800;"><?php echo ucwords(strtolower($name)); ?> race results</h1>
+							<h1 class='tdb-title-text' style="font-family: Oxygen; font-size: 32px; font-weight: 800;"><?php echo stripslashes(ucwords(strtolower($name))); ?> race results</h1>
 						</div>
 					</div>
 					<em>
@@ -432,7 +434,7 @@ ksort($full_data);
 
 						<div class="yrsrs">
 							<?php foreach ($yrsrs_rounds[$key] as $header) {
-								$rd_link = 'https://' . $_SERVER['SERVER_NAME'] . "/database/races.php?id=" . ($data[$header['round']][10] ?? '');
+								$rd_link = 'https://' . $_SERVER['SERVER_NAME'] . "/database/race.php?id=" . ($data[$header['round']][10] ?? '');
 							?>
 								<div style="float:left; padding: 1.5px;">
 									<!-- abbreviation  -->
@@ -443,7 +445,7 @@ ksort($full_data);
 									<div style="padding: 1px; min-width:28px;">
 										<!-- round -->
 										<?php if (!empty($data[$header['round']][10])) { ?>
-											<div class="round" onclick="window.open('<?php echo $rd_link; ?>')" ;?>
+											<div class="round" onclick="parent.location='<?php echo $rd_link; ?>'" ;?>
 											<?php } else { ?>
 												<div class="round">
 												<?php } ?>
@@ -540,7 +542,7 @@ ksort($full_data);
 					<div class="td-ss-main-sidebar">
 						<aside class="widget widget_meta custom-sidebar" style="margin-top: 50px;">
 							<div class="block-title">
-								<span><?php echo ucwords(strtolower($name)); ?></span>
+								<span><?php echo stripslashes(ucwords(strtolower($name))); ?></span>
 							</div>
 
 							<div class="table-row" style="margin-bottom: 10px;">
