@@ -187,22 +187,22 @@ while ($row = mysqli_fetch_assoc($result2)) {
 										<div class='wrapper driver-nat'>
 											<div class='column driver'>
 												<div class='inline-driver-nat'>
-													<a href='driver.php?name=" . $row["driver"] . "'>" . $row["driver"] . "</a>
+													<a href='driver.php?name=" . urlencode($row["driver"]) . "'>" . $row["driver"] . "</a>
 													<img src='../results/flag/" . $row["img"] . ".gif' />
 												</div>"
 										. ($row["driver2"] ?
 											"<div class='inline-driver-nat'>
-													<a href='driver.php?name=" . $row["driver2"] . "'>" . $row["driver2"] . "</a>
+													<a href='driver.php?name=" . urlencode($row["driver2"]) . "'>" . $row["driver2"] . "</a>
 													<img src='../results/flag/" . $drivers[$row['driver_id2']] . ".gif' />
 												</div>" : "")
 										. ($row["driver3"] ?
 											"<div class='inline-driver-nat'>
-													<a href='driver.php?name=" . $row["driver3"] . "'>" . $row["driver3"] . "</a>
+													<a href='driver.php?name=" . urlencode($row["driver3"]) . "'>" . $row["driver3"] . "</a>
 													<img src='../results/flag/" . $drivers[$row['driver_id3']] . ".gif' />
 												</div>" : "")
 										. ($row["driver4"] ?
 											"<div class='inline-driver-nat'>
-													<a href='driver.php?name=" . $row["driver4"] . "'>" . $row["driver4"] . "</a>
+													<a href='driver.php?name=" . addslashes($row["driver4"]) . "'>" . $row["driver4"] . "</a>
 													<img src='../results/flag/" . $drivers[$row['driver_id4']] . ".gif' />
 												</div>" : "") . "												
 											</div>
@@ -229,22 +229,22 @@ while ($row = mysqli_fetch_assoc($result2)) {
 										<div class='wrapper driver-nat'>
 											<div class='column driver'>
 												<div class='inline-driver-nat'>
-													<a href='driver.php?name=" . $row["driver"] . "'>" . $row["driver"] . "</a>
+													<a href='driver.php?name=" . urlencode($row["driver"]) . "'>" . $row["driver"] . "</a>
 													<img src='../results/flag/" . $row["img"] . ".gif' />
 												</div>"
 										. ($row["driver2"] ?
 											"<div class='inline-driver-nat'>
-													<a href='driver.php?name=" . $row["driver2"] . "'>" . $row["driver2"] . "</a>
+													<a href='driver.php?name=" . urlencode($row["driver2"]) . "'>" . $row["driver2"] . "</a>
 													<img src='../results/flag/" . $drivers[$row['driver_id2']] . ".gif' />
 												</div>" : "")
 										. ($row["driver3"] ?
 											"<div class='inline-driver-nat'>
-													<a href='driver.php?name=" . $row["driver3"] . "'>" . $row["driver3"] . "</a>
+													<a href='driver.php?name=" . urlencode($row["driver3"]) . "'>" . $row["driver3"] . "</a>
 													<img src='../results/flag/" . $drivers[$row['driver_id3']] . ".gif' />
 												</div>" : "")
 										. ($row["driver4"] ?
 											"<div class='inline-driver-nat'>
-													<a href='driver.php?name=" . $row["driver4"] . "'>" . $row["driver4"] . "</a>
+													<a href='driver.php?name=" . urlencode($row["driver4"]) . "'>" . $row["driver4"] . "</a>
 													<img src='../results/flag/" . $drivers[$row['driver_id4']] . ".gif' />
 												</div>" : "") . "												
 											</div>
