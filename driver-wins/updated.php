@@ -147,8 +147,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 <head profile="http://gmpg.org/xfn/11">
 
     <meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php bloginfo('charset'); ?>" />
-    <title><?php bloginfo('name'); ?> &raquo; Statistics &raquo; <?php echo $sid ?> &raquo; Race wins by driver</title>
-
+    <title><?php bloginfo('name'); ?> &raquo; Database &raquo; <?php echo $sid ?> &raquo; Race wins by driver</title>
     <style type="text/css">
         .h4h {
             margin-left: 10px;
