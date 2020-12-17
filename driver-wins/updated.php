@@ -19,9 +19,9 @@ mysqli_set_charset($conn, "utf8");
 $sid = $_GET['series'];
 $sid = mysqli_real_escape_string($conn, $sid);
 
-$driver_sql = "SELECT s.driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image
+$driver_sql = "SELECT s.driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image, s.race_id
 FROM
-	(SELECT r.driver, r.driver_id,
+	(SELECT r.driver, r.driver_id, r.race_id,
 	SUM(CASE WHEN r.year='2001' AND r.class_pos='1' AND r.class='' THEN 1 ELSE 0 END)+SUM(CASE WHEN r.year!='2001' AND r.result='1' AND r.class != 'P' THEN 1 ELSE 0 END) AS wins,
 	COUNT(r.driver) AS cnt
 	FROM races r
@@ -30,9 +30,9 @@ FROM
 WHERE s.driver_id=d.id
 ORDER BY s.wins DESC";
 
-$driver2_sql = "SELECT s.driver2 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image
+$driver2_sql = "SELECT s.driver2 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image, s.race_id
 FROM
-	(SELECT r.driver2, r.driver_id2,
+	(SELECT r.driver2, r.driver_id2, r.race_id,
 	SUM(CASE WHEN r.year='2001' AND r.class_pos='1' AND r.class='' THEN 1 ELSE 0 END)+SUM(CASE WHEN r.year!='2001' AND r.result='1' AND r.class != 'P' THEN 1 ELSE 0 END) AS wins,
 	COUNT(r.driver2) AS cnt
 	FROM races r
@@ -41,9 +41,9 @@ FROM
 WHERE s.driver_id2=d.id
 ORDER BY s.wins DESC";
 
-$driver3_sql = "SELECT s.driver3 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image
+$driver3_sql = "SELECT s.driver3 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image, s.race_id
 FROM
-	(SELECT r.driver3, r.driver_id3,
+	(SELECT r.driver3, r.driver_id3, r.race_id,
 	SUM(CASE WHEN r.year='2001' AND r.class_pos='1' AND r.class='' THEN 1 ELSE 0 END)+SUM(CASE WHEN r.year!='2001' AND r.result='1' AND r.class != 'P' THEN 1 ELSE 0 END) AS wins,
 	COUNT(r.driver3) AS cnt
 	FROM races r
@@ -52,9 +52,9 @@ FROM
 WHERE s.driver_id3=d.id
 ORDER BY s.wins DESC";
 
-$driver4_sql = "SELECT s.driver4 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image
+$driver4_sql = "SELECT s.driver4 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image, s.race_id
 FROM
-	(SELECT r.driver4, r.driver_id4,
+	(SELECT r.driver4, r.driver_id4, r.race_id,
 	SUM(CASE WHEN r.year='2001' AND r.class_pos='1' AND r.class='' THEN 1 ELSE 0 END)+SUM(CASE WHEN r.year!='2001' AND r.result='1' AND r.class != 'P' THEN 1 ELSE 0 END) AS wins,
 	COUNT(r.driver4) AS cnt
 	FROM races r
@@ -122,7 +122,7 @@ $driver1 = [];
 $driver1_keys = [];
 while ($row = mysqli_fetch_assoc($driver_result)) {
     $driver1[] = $row;
-    $driver1_keys[$row['driver']][]= $row;
+    $driver1_keys[$row['driver']][] = $row;
 }
 $driver2 = [];
 $driver2_array = [];
@@ -177,26 +177,42 @@ for ($i = 0; $i < count($driver1); $i++) {
     $driver = $driver1[$i]['driver'];
     $updated_wins = $driver1[$i]['wins'];
     $updated_cnt = $driver1[$i]['cnt'];
+    $race_id = $driver1[$i]['race_id'];
 
     if (array_key_exists($driver, $driver2)) {
-        if ($updated_wins < $driver2[$driver][0]['wins'])
-            $updated_wins = $driver2[$driver][0]['wins'];
-        if ($updated_wins < $driver2[$driver][0]['cnt'])
-            $updated_cnt = $driver2[$driver][0]['cnt'];
+        if ($race_id == $driver2[$driver][0]['race_id']) {
+            if ($updated_wins < $driver2[$driver][0]['wins'])
+                $updated_wins = $driver2[$driver][0]['wins'];
+            if ($updated_wins < $driver2[$driver][0]['cnt'])
+                $updated_cnt = $driver2[$driver][0]['cnt'];
+        } else {
+            $updated_wins += $driver2[$driver][0]['wins'];
+            $updated_cnt += $driver2[$driver][0]['cnt'];
+        }
     }
 
     if (array_key_exists($driver, $driver3)) {
-        if ($updated_wins < $driver3[$driver][0]['wins'])
-            $updated_wins = $driver3[$driver][0]['wins'];
-        if ($updated_wins < $driver3[$driver][0]['cnt'])
-            $updated_cnt = $driver3[$driver][0]['cnt'];
+        if ($race_id == $driver2[$driver][0]['race_id']) {
+            if ($updated_wins < $driver3[$driver][0]['wins'])
+                $updated_wins = $driver3[$driver][0]['wins'];
+            if ($updated_wins < $driver3[$driver][0]['cnt'])
+                $updated_cnt = $driver3[$driver][0]['cnt'];
+        } else {
+            $updated_wins += $driver3[$driver][0]['wins'];
+            $updated_cnt += $driver3[$driver][0]['cnt'];
+        }
     }
 
     if (array_key_exists($driver, $driver4)) {
-        if ($updated_wins < $driver4[$driver][0]['wins'])
-            $updated_wins = $driver4[$driver][0]['wins'];
-        if ($updated_wins < $driver4[$driver][0]['cnt'])
-            $updated_cnt = $driver4[$driver][0]['cnt'];
+        if ($race_id == $driver2[$driver][0]['race_id']) {
+            if ($updated_wins < $driver4[$driver][0]['wins'])
+                $updated_wins = $driver4[$driver][0]['wins'];
+            if ($updated_wins < $driver4[$driver][0]['cnt'])
+                $updated_cnt = $driver4[$driver][0]['cnt'];
+        } else {
+            $updated_wins += $driver4[$driver][0]['wins'];
+            $updated_cnt += $driver4[$driver][0]['cnt'];
+        }
     }
 
     $updated_percent = round(($updated_wins / $updated_cnt) * 100, 1);
