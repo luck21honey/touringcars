@@ -19,61 +19,49 @@ mysqli_set_charset($conn, "utf8");
 $sid = $_GET['series'];
 $sid = mysqli_real_escape_string($conn, $sid);
 
-if ($sid == 'ITC') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc limit 100";
-} elseif ($sid == 'DTM') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('DTM', 'ITC') Group by races.driver HAVING Wins > 0 order by 9 desc limit 100";
-} elseif ($sid == 'BTCC') {
-    $sql = "(SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,sum(case when races.year=\"2001\" and races.class_pos=\"1\" and races.class=\"\" then 1 else 0 end)+Sum(Case When races.year!=\"2001\" and races.result=\"1\" and races.class != \"P\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((sum(case when races.year=\"2001\" and races.class_pos=\"1\" and races.class=\"\" then 1 else 0 end)+Sum(Case When races.year!=\"2001\" and races.result=\"1\" and races.class != \"P\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0)
+$driver_sql = "SELECT s.driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image
+FROM
+	(SELECT r.driver, r.driver_id,
+	SUM(CASE WHEN r.year='2001' AND r.class_pos='1' AND r.class='' THEN 1 ELSE 0 END)+SUM(CASE WHEN r.year!='2001' AND r.result='1' AND r.class != 'P' THEN 1 ELSE 0 END) AS wins,
+	COUNT(r.driver) AS cnt
+	FROM races r
+	WHERE r.series='{$sid}' AND r.driver_id != 0
+	GROUP BY r.driver) s, drivers d
+WHERE s.driver_id=d.id
+ORDER BY s.wins DESC";
 
-UNION
+$driver2_sql = "SELECT s.driver2 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image
+FROM
+	(SELECT r.driver2, r.driver_id2,
+	SUM(CASE WHEN r.year='2001' AND r.class_pos='1' AND r.class='' THEN 1 ELSE 0 END)+SUM(CASE WHEN r.year!='2001' AND r.result='1' AND r.class != 'P' THEN 1 ELSE 0 END) AS wins,
+	COUNT(r.driver2) AS cnt
+	FROM races r
+	WHERE r.series='{$sid}' AND driver_id2 != 0
+	GROUP BY r.driver2) s, drivers d
+WHERE s.driver_id2=d.id
+ORDER BY s.wins DESC";
 
-(SELECT races.driver2 as Drvr2, drivers.races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,image,sum(case when races.year=\"2001\" and races.class_pos=\"1\" and races.class=\"\" then 1 else 0 end)+Sum(Case When races.year!=\"2001\" and races.result=\"1\" and races.class != \"P\" Then 1 Else 0 End) as Wins, (SELECT count(races.driver) from `races` where races.driver = Drvr2) + (SELECT count(races.driver2) from `races` where races.driver2 = Drvr2), Round(((sum(case when races.year=\"2001\" and races.class_pos=\"1\" and races.class=\"\" then 1 else 0 end)+Sum(Case When races.year!=\"2001\" and races.result=\"1\" and races.class != \"P\" Then 1 Else 0 End)) / (SELECT count(races.driver2) from `races` where races.driver = Drvr2))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id2 Where `Series` in ('" . $sid . "') Group by races.driver2 HAVING Wins > 0)
+$driver3_sql = "SELECT s.driver3 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image
+FROM
+	(SELECT r.driver3, r.driver_id3,
+	SUM(CASE WHEN r.year='2001' AND r.class_pos='1' AND r.class='' THEN 1 ELSE 0 END)+SUM(CASE WHEN r.year!='2001' AND r.result='1' AND r.class != 'P' THEN 1 ELSE 0 END) AS wins,
+	COUNT(r.driver3) AS cnt
+	FROM races r
+	WHERE r.series='{$sid}' AND driver_id3 != 0
+	GROUP BY r.driver3) s, drivers d
+WHERE s.driver_id3=d.id
+ORDER BY s.wins DESC";
 
-order by 9 desc";
-} elseif ($sid == 'ETCC') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('ETCC', 'Euro STC') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'Euro STC') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'ETC Cup') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'RCRS') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'STCC' or $sid == 'TCR SC') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'STW Cup') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'WC TCR') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'WTCC') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,sum(case when races.year=\"2001\" and races.class_pos=\"1\" and races.class=\"\" then 1 else 0 end)+Sum(Case When races.year!=\"2001\" and races.result=\"1\" and races.class != \"P\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((sum(case when races.year=\"2001\" and races.class_pos=\"1\" and races.class=\"\" then 1 else 0 end)+Sum(Case When races.year!=\"2001\" and races.result=\"1\" and races.class != \"P\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'WTCR') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR Asia') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR AU') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR DE') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR EE') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR EU') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR Intl') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR IT') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR JP') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR UK') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'TCR KR' or $sid == 'TCR MY') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,Sum(Case When races.result=\"1\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((Sum(Case When races.result=\"1\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('" . $sid . "') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} elseif ($sid == 'ALL') {
-    $sql = "SELECT races.driver, drivers.image,races.`driver2`, races.`driver_id2`, races.`driver3`, races.`driver_id3`, races.`driver4`, races.`driver_id4`,sum(case when races.year=\"2001\" and races.class_pos=\"1\" and races.class=\"\" then 1 else 0 end)+Sum(Case When races.year!=\"2001\" and races.result=\"1\" and races.class != \"P\" Then 1 Else 0 End) as Wins, count(races.driver) as Races, Round(((sum(case when races.year=\"2001\" and races.class_pos=\"1\" and races.class=\"\" then 1 else 0 end)+Sum(Case When races.year!=\"2001\" and races.result=\"1\" and races.class != \"P\" Then 1 Else 0 End)) / count(races.driver))*100,1) as Percent From `drivers` INNER JOIN races on drivers.id = races.driver_id Where `Series` in ('BTCC', 'DTM', 'ETCC', 'Euro STC', 'ETC Cup', 'ITC', 'STCC', 'STW Cup', 'TCR Asia', 'TCR DE', 'TCR EU', 'RCRS', 'TCR IT', 'TCR Intl', 'TCR UK', 'WC TCR', 'WTCC', 'WTCR') Group by races.driver HAVING Wins > 0 order by 9 desc";
-} else {
-    $sql = "";
-}
+$driver4_sql = "SELECT s.driver4 AS driver, s.wins, s.cnt, ROUND(s.wins/s.cnt*100, 1) AS percent, d.image
+FROM
+	(SELECT r.driver4, r.driver_id4,
+	SUM(CASE WHEN r.year='2001' AND r.class_pos='1' AND r.class='' THEN 1 ELSE 0 END)+SUM(CASE WHEN r.year!='2001' AND r.result='1' AND r.class != 'P' THEN 1 ELSE 0 END) AS wins,
+	COUNT(r.driver4) AS cnt
+	FROM races r
+	WHERE r.series='{$sid}' AND driver_id4 != 0
+	GROUP BY r.driver4) s, drivers d
+WHERE s.driver_id4=d.id
+ORDER BY s.wins DESC";
 
 if ($sid == 'ITC') {
     $sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races WHERE series = '" . $sid . "' and Result = '1'";
@@ -123,20 +111,68 @@ if ($sid == 'ITC') {
     $sql2 = "";
 }
 
-$sqldrivers = "SELECT id, driver, image FROM drivers ORDER BY id";
-$drivers_result = mysqli_query($conn, $sqldrivers);
-$drivers = [];
-while ($row = mysqli_fetch_assoc($drivers_result)) {
-    $drivers[$row['driver']] = $row;
-}
 
-$result = mysqli_query($conn, $sql);
+$driver_result = mysqli_query($conn, $driver_sql);
+$driver2_result = mysqli_query($conn, $driver2_sql);
+$driver3_result = mysqli_query($conn, $driver3_sql);
+$driver4_result = mysqli_query($conn, $driver4_sql);
 $result2 = mysqli_query($conn, $sql2);
 
-$driver_wins = [];
-while ($row = mysqli_fetch_assoc($result)) {
-    $driver_wins[] = $row;
+$driver1 = [];
+while ($row = mysqli_fetch_assoc($driver_result)) {
+    $driver1[] = $row;
 }
+$driver2 = [];
+while ($row = mysqli_fetch_assoc($driver2_result)) {
+    $driver2[$row['driver']][] = $row;
+}
+$driver3 = [];
+while ($row = mysqli_fetch_assoc($driver3_result)) {
+    $driver3[$row['driver']][] = $row;
+}
+$driver4 = [];
+while ($row = mysqli_fetch_assoc($driver4_result)) {
+    $driver4[$row['driver']][] = $row;
+}
+
+// var_dump($driver1[0]['driver']);exit;
+// var_dump($driver4['Geoff KIMBER-SMITH'][0]['driver']); exit;
+
+$driver_wins = [];
+for ($i = 0; $i < count($driver1); $i++) {
+    $driver = $driver1[$i]['driver'];
+    $updated_wins = $driver1[$i]['wins'];
+    $updated_cnt = $driver1[$i]['cnt'];
+
+    if (array_key_exists($driver, $driver2)) {
+        if ($updated_wins < $driver2[$driver][0]['wins'])
+            $updated_wins = $driver2[$driver][0]['wins'];
+        if ($updated_wins < $driver2[$driver][0]['cnt'])
+            $updated_cnt = $driver2[$driver][0]['cnt'];
+    }
+
+    if (array_key_exists($driver, $driver3)) {
+        if ($updated_wins < $driver3[$driver][0]['wins'])
+            $updated_wins = $driver3[$driver][0]['wins'];
+        if ($updated_wins < $driver3[$driver][0]['cnt'])
+            $updated_cnt = $driver3[$driver][0]['cnt'];
+    }
+
+    if (array_key_exists($driver, $driver4)) {
+        if ($updated_wins < $driver4[$driver][0]['wins'])
+            $updated_wins = $driver4[$driver][0]['wins'];
+        if ($updated_wins < $driver4[$driver][0]['cnt'])
+            $updated_cnt = $driver4[$driver][0]['cnt'];
+    }
+
+    $updated_percent = round(($updated_wins / $updated_cnt) * 100, 1);
+    $driver_img = $driver1[$i]['image'];
+
+    if ($updated_wins > 0)
+        $driver_wins[] = [$driver, $updated_wins, $updated_cnt, $updated_percent, $driver_img];
+}
+// var_dump($driver_wins);
+// exit;
 
 ?>
 
@@ -278,28 +314,16 @@ while ($row = mysqli_fetch_assoc($result)) {
                             <?php if (count($driver_wins) > 0) {
                                 // output data of each row
                                 foreach ($driver_wins as $row) {
-                                    // echo "<tr><td>" . $row["rank"]. "</td><td>" . $row["driver"]. "</td><td>" . $row["sessions"]. "</td></tr>";
+                                    // $driver_wins[] = [$driver, $updated_wins, $updated_cnt, $updated_percent, $driver_img];
                                     echo "<tr>
                             <td class='rownums'></td>
                             <td>
-                                <img src='../results/flag/" . $row["image"] . ".gif' />&nbsp;
-                                <a href='../results/statistics/lists/driver-wins.php?series=" . urlencode($sid) . "&driver=" . urlencode($row["driver"]) . "'>" . $row["driver"] . "</a>"
-                                        . ($row["driver2"] ?
-                                            "<br><img src='../results/flag/" . $drivers[$row['driver2']]['image'] . ".gif' />&nbsp;
-                                            <a href='../results/statistics/lists/driver-wins.php?series=" . urlencode($sid) . "&driver=" . urlencode($row["driver2"]) . "' >" . $row["driver2"] . "</a>"
-                                            : "")
-                                        . ($row["driver3"] ?
-                                            "<br><img src='../results/flag/" . $drivers[$row['driver3']]['image'] . ".gif' />&nbsp;
-                                            <a href='../results/statistics/lists/driver-wins.php?series=" . urlencode($sid) . "&driver=" . urlencode($row["driver3"]) . "'>" . $row["driver3"] . "</a>"
-                                            : "")
-                                        . ($row["driver4"] ?
-                                            "<br><img src='../results/flag/" . $drivers[$row['driver4']]['image'] . ".gif' />&nbsp;
-                                            <a href='../results/statistics/lists/driver-wins.php?series=" . urlencode($sid) . "&driver=" . urlencode($row["driver4"]) . "'>" . $row["driver4"] . "</a>"
-                                            : "") .
-                                        "</td>
-                            <td>" . $row["Wins"] . "</td>
-                            <td>" . $row["Races"] . "</td>
-                            <td>" . $row["Percent"] . "</tr>";
+                                <img src='../results/flag/" . $row[4] . ".gif' />&nbsp;
+                                <a href='../results/statistics/lists/driver-wins.php?series=" . urlencode($sid) . "&driver=" . urlencode($row[0]) . "'>" . $row[0] . "</a>
+                            </td>
+                            <td>" . $row[1] . "</td>
+                            <td>" . $row[2] . "</td>
+                            <td>" . $row[3] . "</tr>";
                                 }
                             } else {
                                 echo "0 results";
