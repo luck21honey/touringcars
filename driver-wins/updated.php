@@ -119,19 +119,27 @@ $driver4_result = mysqli_query($conn, $driver4_sql);
 $result2 = mysqli_query($conn, $sql2);
 
 $driver1 = [];
+$driver1_keys = [];
 while ($row = mysqli_fetch_assoc($driver_result)) {
     $driver1[] = $row;
+    $driver1_keys[$row['driver']][]= $row;
 }
 $driver2 = [];
+$driver2_array = [];
 while ($row = mysqli_fetch_assoc($driver2_result)) {
+    $driver2_array[] = $row;
     $driver2[$row['driver']][] = $row;
 }
 $driver3 = [];
+$driver3_array = [];
 while ($row = mysqli_fetch_assoc($driver3_result)) {
+    $driver3_array[] = $row;
     $driver3[$row['driver']][] = $row;
 }
 $driver4 = [];
+$driver4_array = [];
 while ($row = mysqli_fetch_assoc($driver4_result)) {
+    $driver4_array[] = $row;
     $driver4[$row['driver']][] = $row;
 }
 
@@ -139,6 +147,32 @@ while ($row = mysqli_fetch_assoc($driver4_result)) {
 // var_dump($driver4['Geoff KIMBER-SMITH'][0]['driver']); exit;
 
 $driver_wins = [];
+// check only exist driver2/3/4
+for ($i = 0; $i < count($driver2_array); $i++) {
+    $driver = $driver2_array[$i]['driver'];
+    if (!array_key_exists($driver, $driver1_keys)) {
+        if ($driver2_array[$i]['wins'] > 0) {
+            $driver_wins[] = [$driver, $driver2_array[$i]['wins'], $driver2_array[$i]['cnt'], $driver2_array[$i]['percent'], $driver2_array[$i]['image']];
+        }
+    }
+}
+for ($i = 0; $i < count($driver3_array); $i++) {
+    $driver = $driver3_array[$i]['driver'];
+    if (!array_key_exists($driver, $driver1_keys)) {
+        if ($driver3_array[$i]['wins'] > 0) {
+            $driver_wins[] = [$driver, $driver3_array[$i]['wins'], $driver3_array[$i]['cnt'], $driver3_array[$i]['percent'], $driver3_array[$i]['image']];
+        }
+    }
+}
+for ($i = 0; $i < count($driver4_array); $i++) {
+    $driver = $driver4_array[$i]['driver'];
+    if (!array_key_exists($driver, $driver1_keys)) {
+        if ($driver4_array[$i]['wins'] > 0) {
+            $driver_wins[] = [$driver, $driver4_array[$i]['wins'], $driver4_array[$i]['cnt'], $driver4_array[$i]['percent'], $driver4_array[$i]['image']];
+        }
+    }
+}
+
 for ($i = 0; $i < count($driver1); $i++) {
     $driver = $driver1[$i]['driver'];
     $updated_wins = $driver1[$i]['wins'];
@@ -171,9 +205,16 @@ for ($i = 0; $i < count($driver1); $i++) {
     if ($updated_wins > 0)
         $driver_wins[] = [$driver, $updated_wins, $updated_cnt, $updated_percent, $driver_img];
 }
-// var_dump($driver_wins);
-// exit;
 
+
+// sort by wins
+$wins = array_column($driver_wins, 1);
+array_multisort($wins, SORT_DESC, $driver_wins);
+
+// echo "<pre>";
+// var_dump($driver_wins);
+// echo "</pre>";
+// exit;
 ?>
 
 <!DOCTYPE html>
