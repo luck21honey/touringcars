@@ -1,4 +1,6 @@
-<?php require $_SERVER['DOCUMENT_ROOT'] . ('/wp-blog-header.php');
+<?php
+define('WP_USE_THEMES', false);
+require($_SERVER['DOCUMENT_ROOT'] . '/wp-load.php');
 
 // DB connection 
 require('../results/connection.php');
@@ -8,13 +10,16 @@ mysqli_set_charset($conn, "utf8");
  * Get all series
  */
 $all_races = [];
-$all_races_sql = "SELECT series, `year`
-                        FROM races
-                        GROUP BY series, `year`
-                        ORDER BY series, `year` DESC";
+$all_races_sql = "SELECT r.series, r.year, s.title
+                FROM (SELECT series, `year`
+                FROM races
+                GROUP BY series, `year`
+                ORDER BY `year` DESC, `date`) r
+                LEFT JOIN series s
+                ON r.series=s.code";
 $all_races_query_result = mysqli_query($conn, $all_races_sql);
 while ($row = mysqli_fetch_assoc($all_races_query_result)) {
-    $all_races[$row['series']][] = $row['year'];
+    $all_races[$row['series']][] = [$row['year'], $row['title']];
 }
 
 
@@ -22,6 +27,7 @@ while ($row = mysqli_fetch_assoc($all_races_query_result)) {
 /**
  * Get latest results
  */
+$latest_results_from = 0;
 $latest_results = [];
 $latest_sql = "SELECT DATE_FORMAT(races.`date`, '%d %b') AS dd, races.`series`, circuits.`circuit`, races.`round`
             FROM races
@@ -29,7 +35,7 @@ $latest_sql = "SELECT DATE_FORMAT(races.`date`, '%d %b') AS dd, races.`series`, 
             ON races.`track` = circuits.`configuration`
             GROUP BY races.`date`
             ORDER BY races.`date` DESC
-            LIMIT 0, 5";
+            LIMIT {$latest_results_from}, 5";
 $latest_query_result = mysqli_query($conn, $latest_sql);
 if (mysqli_num_rows($latest_query_result)) {
     while ($row = mysqli_fetch_assoc($latest_query_result)) {
@@ -41,6 +47,7 @@ if (mysqli_num_rows($latest_query_result)) {
 /**
  * Get upcoming results
  */
+$upcoming_races_from = 0;
 $upcoming_races = [];
 $upcoming_sql = "SELECT circuits.`code`, DATE_FORMAT(event.`date`, '%d %b') AS dd, event.`series`, event.`round`, circuits.`circuit`
                 FROM `event`
@@ -48,7 +55,7 @@ $upcoming_sql = "SELECT circuits.`code`, DATE_FORMAT(event.`date`, '%d %b') AS d
                 ON circuits.`configuration` = event.`circuit`
                 WHERE event.`date` > CURRENT_DATE()
                 ORDER BY event.`date`
-                LIMIT 0, 5";
+                LIMIT {$upcoming_races_from}, 5";
 $upcoming_query_result = mysqli_query($conn, $upcoming_sql);
 if (mysqli_num_rows($upcoming_query_result)) {
     while ($row = mysqli_fetch_assoc($upcoming_query_result)) {
@@ -89,8 +96,20 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
 <head>
     <meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php bloginfo('charset'); ?>" />
     <title><?php bloginfo('name'); ?> &raquo; Results</title>
+    <script src="/results/tablesorter/js/jquery-latest.min.js"></script>
     <link rel="stylesheet" href="index.css">
 </head>
+
+<style>
+    .series_name {
+        cursor: pointer;
+    }
+
+    .series_name:hover {
+        color: #F1545A;
+    }
+</style>
+
 
 <?php get_header(); ?>
 
@@ -121,14 +140,20 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                     foreach ($all_races as $key => $values) {
                         $all_races_string = "";
                         foreach ($values as $item) {
-                            $all_races_string .= "<a href='season.php?series=" . urlencode($key) . "&year=" . $item . "' style='line-height: 16px;'>" . $item . "</a> - ";
+                            $all_races_string .= "<a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a> - ";
                         } ?>
                         <div class="td-pb-span6">
                             <div class="custom-card">
-                                <h1><?php echo $key; ?></h1>
+                                <h1><span title="<?php echo $values[0][1]; ?>" class="series_name"><?php echo $key; ?></span></h1>
                                 <p class="qualifying">
                                     <span class="qual">
                                         <?php echo rtrim($all_races_string, " - "); ?>
+                                    </span>
+                                </p>
+
+                                <p class="qualifying">
+                                    <span class="qual">
+                                        <a href="driver-wins.php?series=<?php echo urlencode($key); ?>" style="line-height: 16px;">Most driver wins</a>
                                     </span>
                                 </p>
                             </div>
@@ -147,27 +172,29 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                         <span>Latest Results</span>
                     </div>
 
-                    <?php
-                    for ($i = 0; $i < count($latest_results); $i++) { ?>
-                        <div class="table-row" style="margin-bottom: 10px;">
-                            <div class="custom-list">
-                                <div>
-                                    <span><?php echo  $latest_results[$i]['dd']; ?></span>
-                                    &nbsp; - &nbsp;
-                                    <span><?php echo  $latest_results[$i]['series']; ?></span>
-                                    &nbsp; - &nbsp;
-                                    <span><?php echo  $latest_results[$i]['circuit']; ?></span>
-                                    &nbsp;
-                                    <span>Round <?php echo  $latest_results[$i]['round']; ?></span>
+                    <div id="latest_results_area">
+                        <?php
+                        for ($i = 0; $i < count($latest_results); $i++) { ?>
+                            <div class="table-row" style="margin-bottom: 10px;">
+                                <div class="custom-list">
+                                    <div>
+                                        <span><?php echo  $latest_results[$i]['dd']; ?></span>
+                                        &nbsp; - &nbsp;
+                                        <span><?php echo  $latest_results[$i]['series']; ?></span>
+                                        &nbsp; - &nbsp;
+                                        <span><?php echo  $latest_results[$i]['circuit']; ?></span>
+                                        &nbsp;
+                                        <span>Round <?php echo  $latest_results[$i]['round']; ?></span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <hr>
-                    <?php }
-                    ?>
+                            <hr>
+                        <?php }
+                        ?>
+                    </div>
 
                     <div class="table-row" style="margin-bottom: 10px;">
-                        <div class='standings-topten'><button class="primary"> Load more</button></div>
+                        <div class='standings-topten'><button class="primary" id="latest_results_more"> Load more</button></div>
                     </div>
 
                 </aside>
@@ -182,30 +209,33 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                         <span>Upcoming races</span>
                     </div>
 
-                    <?php
-                    for ($i = 0; $i < count($upcoming_races); $i++) { ?>
-                        <div class="table-row" style="margin-bottom: 10px;">
-                            <div class="custom-list">
-                                <span><img src="<?php $_SERVER['DOCUMENT_ROOT']; ?>/results/flag/<?php echo $upcoming_races[$i]['code']; ?>.gif"></span>
-                                &nbsp;
-                                <span><?php echo  $upcoming_races[$i]['dd']; ?></span>
-                                &nbsp; - &nbsp;
-                                <span><?php echo  $upcoming_races[$i]['series']; ?></span>
-                                &nbsp; - &nbsp;
-                                <span><?php echo  $upcoming_races[$i]['circuit']; ?></span>
-                                &nbsp;
-                                <span>Round <?php echo  $upcoming_races[$i]['round']; ?></span>
-                            </div>
-                        </div>
+                    <div id="upcoming_races_area">
                         <?php
-                        if (count($upcoming_races) > 1) { ?>
-                            <hr>
-                    <?php }
-                    }
-                    ?>
+                        for ($i = 0; $i < count($upcoming_races); $i++) { ?>
+                            <div class="table-row" style="margin-bottom: 10px;">
+                                <div class="custom-list">
+                                    <span><img src="<?php $_SERVER['DOCUMENT_ROOT']; ?>/results/flag/<?php echo $upcoming_races[$i]['code']; ?>.gif"></span>
+                                    &nbsp;
+                                    <span><?php echo  $upcoming_races[$i]['dd']; ?></span>
+                                    &nbsp; - &nbsp;
+                                    <span><?php echo  $upcoming_races[$i]['series']; ?></span>
+                                    &nbsp; - &nbsp;
+                                    <span><?php echo  $upcoming_races[$i]['circuit']; ?></span>
+                                    &nbsp;
+                                    <span>Round <?php echo  $upcoming_races[$i]['round']; ?></span>
+                                </div>
+                            </div>
+                            <?php
+                            if (count($upcoming_races) > 1) { ?>
+                                <hr>
+                        <?php }
+                        }
+                        ?>
+                    </div>
+
 
                     <div class="table-row" style="margin-bottom: 10px;">
-                        <div class='standings-topten'><button class="primary"> Load more</button></div>
+                        <div class='standings-topten'><button class="primary" id="upcoming_races_more"> Load more</button></div>
                     </div>
                 </aside>
 
@@ -242,4 +272,45 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
         </div>
     </div>
 </div>
+
+<script>
+    var latest_results_from = <?php echo $latest_results_from; ?>;
+    $("#latest_results_more").click(function() {
+        latest_results_from += 5;
+
+        $.ajax({
+            url: "/database/latest_results_load_more.php",
+            type: "post",
+            dataType: 'json',
+            data: {
+                from: latest_results_from
+            },
+            success: function(data) {
+                // console.log('latest ajax return result>>', data);
+                $("#latest_results_area").last().append(data);
+            }
+        });
+
+    });
+
+    var upcoming_races_from = <?php echo $upcoming_races_from; ?>;
+    $("#upcoming_races_more").click(function() {
+        upcoming_races_from += 5;
+
+        $.ajax({
+            url: "/database/upcoming_races_load_more.php",
+            type: "post",
+            dataType: 'json',
+            data: {
+                from: upcoming_races_from
+            },
+            success: function(data) {
+                // console.log('upcoming ajax return result>>', data);
+                $("#upcoming_races_area").last().append(data);
+            }
+        });
+
+    });
+</script>
+
 <?php get_footer(); ?>
