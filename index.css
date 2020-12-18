@@ -1,0 +1,89 @@
+.custom-card {
+    /* border: solid 2px #f1545a;
+    border-radius: 10px; */
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.custom-footer {
+    border: solid 1px #ededed;
+    margin: 10px;
+    padding: 20px;
+}
+
+.custom-list {
+    margin-left: 12px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.pos {
+    padding-right: 10px;
+}
+
+.custom-sidebar {
+    box-shadow: 10px 8px 10px #f2f2f2;
+}
+
+.dates {
+    font-style: italic;
+    font-size: 11px;
+}
+
+.round-date {
+    margin-bottom: 5px;
+}
+
+.qualifying {
+    margin-bottom: 5px;
+}
+
+.qual a {
+    font-weight: bold;
+    color: #000;
+}
+
+.qual a:hover {
+    text-decoration: underline;
+    font-weight: bold;
+    color: #000;
+}
+
+.races {
+    margin-bottom: 2px;
+}
+
+.race a {
+    font-weight: bold;
+    color: #000;
+}
+
+.race a:hover {
+    text-decoration: underline;
+    font-weight: bold;
+    color: #000;
+}
+
+.footeryear {
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    padding: 3px;
+    line-height: 12px;
+    display: inline-block;
+    margin-bottom: 4px;
+    background: #F7F7F7;
+}
+
+.footeryear a {
+    color: #000000;
+}
+
+.footeryear:hover {
+    background: #E5E5E5;
+}
+
+.seriesgroup {
+    margin-bottom: 5px;
+    border-bottom: 1px dashed #E5E5E5;
+}
