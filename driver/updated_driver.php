@@ -399,7 +399,7 @@ ksort($full_data);
 					foreach ($full_data as $key => $data) {
 						$first = array_values($full_data[$key])[0];
 						$standings_link = 'https://' . $_SERVER['SERVER_NAME'] . "/database/standings.php?series={$first[2]}&year={$first[3]}";
-						$yrsrs_link = 'https://' . $_SERVER['SERVER_NAME'] . "/database/index.php?series={$first[2]}&year={$first[3]}"; ?>
+						$yrsrs_link = 'https://' . $_SERVER['SERVER_NAME'] . "/database/season.php?series={$first[2]}&year={$first[3]}"; ?>
 						<table class="description">
 							<tr>
 								<td rowspan="2" class="year">

@@ -22,14 +22,14 @@ while ($row = mysqli_fetch_assoc($title_query_result)) {
  * Get events-circuits data
  */
 $events_circuits_data = [];
-$events_circuits_sql = "SELECT e.event_id, e.round, e.date, e.circuit, e.`race_id`, e.`qual_id`,  c.`graphic_path`
+$events_circuits_sql = "SELECT e.event_id, e.round, e.date, e.circuit, e.`race_id`, e.`qual_id`,  c.`graphic_path`,  c.`circuit` as crct
                         FROM (SELECT * FROM `event` WHERE `year`='" . $year . "' AND `series`='" . $series . "') e
                         LEFT JOIN circuits c
                         ON e.circuit = c.configuration
                         ORDER BY e.date, e.round+0";
 $events_circuits_query_result = mysqli_query($conn, $events_circuits_sql);
 while ($row = mysqli_fetch_assoc($events_circuits_query_result)) {
-    $events_circuits_data[$row['event_id']][] = [$row['round'], $row['date'], $row['circuit'], $row['race_id'], $row['qual_id'], $row['graphic_path']];
+    $events_circuits_data[$row['event_id']][] = [$row['round'], $row['date'], $row['circuit'], $row['race_id'], $row['qual_id'], $row['graphic_path'], $row['crct']];
 }
 
 
@@ -253,9 +253,9 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
             <div class="td-post-header td-pb-padding-side">
                 <ul class="td-category">
                     <li class='entry-category'><a href='/'><?php bloginfo('name'); ?></a></li>
-                    <li class='entry-category'><a href='/results/index.php'>Results</a></li>
-                    <li class='entry-category'><a href='/results/btcc/index.php'><?php echo $series_title; ?></a></li>
-                    <li class='entry-category'><a href='index.php'><?php echo $year; ?></a></li>
+                    <li class='entry-category'><a href='/results/season.php'>Results</a></li>
+                    <li class='entry-category'><a href='/results/btcc/season.php'><?php echo $series_title; ?></a></li>
+                    <li class='entry-category'><a href='season.php'><?php echo $year; ?></a></li>
                 </ul>
 
                 <div class="td_block_wrap tdb_title tdi_78_07e tdb-single-title td-pb-border-top td_block_template_1" style="margin-bottom: 0px;">
@@ -298,7 +298,7 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                         <div class="td-pb-span6" style="padding-left: <?php echo ($i == 1 ? "9px" : "10px"); ?>; padding-right: <?php echo ($i == 1 ? "9px" : "10px"); ?>">
 
                             <div class="custom-card">
-                                <img src="<?php $_SERVER['DOCUMENT_ROOT']; ?><?php echo $values[0][5]; ?>" title="<?php $values[0][2]; ?>" style="width: auto; height: auto;" />
+                                <a href="circuit.php?track=<?php echo $values[0][6]; ?>"><img src="<?php $_SERVER['DOCUMENT_ROOT']; ?><?php echo $values[0][5]; ?>" title="<?php $values[0][2]; ?>" style="width: auto; height: auto;" /></a>
                                 <p class="round-date">
                                     <b><?php echo $rounds; ?></b>,
                                     <span class="dates">
@@ -531,7 +531,7 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                         $string = '';
                         echo "";
                         foreach ($values as $value) {
-                            $string .= "<div class='footeryear'><a href='" . get_option('home') . "/database/index.php?series=" . $key . "&year=" . $value[1] . "'>" . $value[1] . "</a></div> ";
+                            $string .= "<div class='footeryear'><a href='" . get_option('home') . "/database/season.php?series=" . $key . "&year=" . $value[1] . "'>" . $value[1] . "</a></div> ";
                         }
                         echo rtrim($string, "-");
                         echo "</div>";

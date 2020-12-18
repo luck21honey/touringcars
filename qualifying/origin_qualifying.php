@@ -202,7 +202,7 @@ function print_q($results, $no_exit_more_than_one_driver, $drivers, $title)
 
                     <div class="clearfix"></div>
 
-                    <a href='../../'><?php bloginfo('name'); ?></a> &raquo; <a href="index.php?series=<?php echo $series; ?>&year=<?php echo $year; ?>">Database</a> &raquo; <?php echo $series . " " . $year; ?> &raquo; Round <?php echo $round; ?> Results
+                    <a href='../../'><?php bloginfo('name'); ?></a> &raquo; <a href="season.php?series=<?php echo $series; ?>&year=<?php echo $year; ?>">Database</a> &raquo; <?php echo $series . " " . $year; ?> &raquo; Round <?php echo $round; ?> Results
 
                     <div class="stats-div">
 
@@ -406,7 +406,7 @@ function print_q($results, $no_exit_more_than_one_driver, $drivers, $title)
                                 while ($row = mysqli_fetch_assoc($footer_result)) {
                                     echo "<a href='qualifying.php?id={$row['qual_id']}'>Round " . $row['round'] . ": " . $row['layout'] . "</a>,&nbsp;";
                                 }
-                                echo "<a href='index.php?series={$series}&year={$year}'>" . $series . " " . $year . "</a>";
+                                echo "<a href='season.php?series={$series}&year={$year}'>" . $series . " " . $year . "</a>";
                             } else {
                                 echo "";
                             }    ?>

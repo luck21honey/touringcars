@@ -10,10 +10,20 @@ $series = $_GET['series'];
 $series = mysqli_real_escape_string($conn, $series);
 $year = $_GET['year'];
 
+/**
+ * Get title
+ */
+$title_sql = "SELECT `code`, title FROM series WHERE `code`='" . $series . "'";
+$title_query_result = mysqli_query($conn, $title_sql);
+while ($row = mysqli_fetch_assoc($title_query_result)) {
+    $series_title = $row['title'];
+}
+
 
 include('./get_column_header.php');
 include('./get_drivers_data.php');
 include('./get_touring_data.php');
+include('./get_saturday_data.php'); //For TCR Japan
 include('./get_independent_data.php');
 include('./get_privateers_data.php');
 include('./get_trophy_data.php');
@@ -37,33 +47,41 @@ include('./get_classB_data.php');
 
 <?php get_header(); ?>
 
-<div class="td-container">
+<div class="td-container-wrap" style="padding: 20px;">
 
-    <a href='../../../'><?php bloginfo('name'); ?></a> >> <a href='../../index.php'>Results</a> >> <a href='../index.php'>British Touring Car Championship</a> >> <a href='index.php'><?php echo $year; ?></a> >> Championship Standings
+    <a href='../../../'><?php bloginfo('name'); ?></a> &raquo; <a href='../../index.php'>Results</a> &raquo; <?php echo $series_title; ?> &raquo; <a href='season.php?series=<?php echo $series; ?>&year=<?php echo $year; ?>'><?php echo $year; ?></a> &raquo; Championship Standings<br /><br />
 
     <!-- First table : Drivers | Touring -->
 
     <table border="0" width="100%">
         <tr>
             <td width='50%'>
-                <?php
-                if (count($drivers_data)) { ?>
-                    <h2><?php echo $year . ' ' . $driver_classification; ?>' Standings</h2>
-                <?php } else { ?>
-                    <h2><?php echo $year . ' ' . $touring_classification; ?>' Standings</h2>
-                <?php } ?>
+				<div class="td_block_wrap tdb_title tdi_78_07e tdb-single-title td-pb-border-top td_block_template_1" style="margin-bottom: 0px;">
+					<div class="tdb-block-inner td-fix-index">
+						<?php
+						if (count($drivers_data)) { ?>
+							<h1 class='tdb-title-text' style="font-family: Oxygen; font-size: 32px; font-weight: 800;"><?php echo $year . ' ' . $driver_classification; ?>' Standings</h1>
+						<?php } else if (count($touring_data)) { ?>
+							<h1 class='tdb-title-text' style="font-family: Oxygen; font-size: 32px; font-weight: 800;"><?php echo $year . ' ' . $touring_classification; ?> Drivers' Standings</h1>
+						<?php } else { ?>
+							<h1 class='tdb-title-text' style="font-family: Oxygen; font-size: 32px; font-weight: 800;"><?php echo $year . ' ' . $saturday_classification; ?>Series Standings</h1>
+						<?php } ?>
+					</div>
+				</div>
             </td>
-            <td width="50%" align="right"><?php include('../results/pointsselect.php'); ?></td>
+            <td width="50%" align="right"></td>
         </tr>
     </table>
 
-    The table below displays race finishing positions. Key: R (Retired), NC (Not classified), EX (Excluded), NS (Did not start).<br />
+    The table below displays race finishing positions. Key: R (Retired), NC (Not classified), NS (Did not start), EX (Excluded), DQ (Disqualified).<br />
 
     <?php
     if (count($drivers_data)) {
         include('./drivers_standing_table.php');
-    } else {
+    } else if (count($touring_data)) {
         include('./touring_standing_table.php');
+	} else {
+        include('./saturday_standing_table.php');
     }
     ?>
 
