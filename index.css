@@ -1,21 +1,7 @@
-.custom-card {
-    /* border: solid 2px #f1545a;
-    border-radius: 10px; */
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    padding: 10px;
-    margin-bottom: 10px;
-}
-
 .custom-footer {
     border: solid 1px #ededed;
     margin: 10px;
     padding: 20px;
-}
-
-.custom-list {
-    margin-left: 12px;
-    display: flex;
-    justify-content: space-between;
 }
 
 .pos {
@@ -45,7 +31,7 @@
 }
 
 .qual a:hover {
-    text-decoration: underline;
+    /* text-decoration: underline; */
     font-weight: bold;
     color: #000;
 }

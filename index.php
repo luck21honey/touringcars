@@ -27,7 +27,6 @@ while ($row = mysqli_fetch_assoc($all_races_query_result)) {
 /**
  * Get latest results
  */
-$latest_results_from = 0;
 $latest_results = [];
 $latest_sql = "SELECT DATE_FORMAT(races.`date`, '%d %b') AS dd, races.`series`, circuits.`circuit`, races.`round`
             FROM races
@@ -35,7 +34,7 @@ $latest_sql = "SELECT DATE_FORMAT(races.`date`, '%d %b') AS dd, races.`series`, 
             ON races.`track` = circuits.`configuration`
             GROUP BY races.`date`
             ORDER BY races.`date` DESC
-            LIMIT {$latest_results_from}, 5";
+            LIMIT 0, 5";
 $latest_query_result = mysqli_query($conn, $latest_sql);
 if (mysqli_num_rows($latest_query_result)) {
     while ($row = mysqli_fetch_assoc($latest_query_result)) {
@@ -45,9 +44,27 @@ if (mysqli_num_rows($latest_query_result)) {
 
 
 /**
+ * Get count of latest results
+ */
+$count_of_latest_results = 0;
+$latest_count_sql = "SELECT COUNT(rr.date) AS latest_cnt
+                FROM (
+                SELECT *
+                FROM races
+                GROUP BY races.`date`
+                ) rr";
+$latest_count_query_result = mysqli_query($conn, $latest_count_sql);
+if (mysqli_num_rows($latest_query_result)) {
+    while ($row = mysqli_fetch_assoc($latest_count_query_result)) {
+        $count_of_latest_results = $row['latest_cnt'];
+    }
+}
+
+
+
+/**
  * Get upcoming results
  */
-$upcoming_races_from = 0;
 $upcoming_races = [];
 $upcoming_sql = "SELECT circuits.`code`, DATE_FORMAT(event.`date`, '%d %b') AS dd, event.`series`, event.`round`, circuits.`circuit`
                 FROM `event`
@@ -55,7 +72,7 @@ $upcoming_sql = "SELECT circuits.`code`, DATE_FORMAT(event.`date`, '%d %b') AS d
                 ON circuits.`configuration` = event.`circuit`
                 WHERE event.`date` > CURRENT_DATE()
                 ORDER BY event.`date`
-                LIMIT {$upcoming_races_from}, 5";
+                LIMIT 0, 5";
 $upcoming_query_result = mysqli_query($conn, $upcoming_sql);
 if (mysqli_num_rows($upcoming_query_result)) {
     while ($row = mysqli_fetch_assoc($upcoming_query_result)) {
@@ -63,6 +80,22 @@ if (mysqli_num_rows($upcoming_query_result)) {
     }
 }
 
+
+/**
+ * Get count of upcoming results
+ */
+$count_of_upcoming_results = 0;
+$upcoming_count_sql = "SELECT COUNT(ee.date) AS upcoming_cnt
+                        FROM (
+                        SELECT *
+                        FROM `event`
+                        WHERE event.`date` > CURRENT_DATE()) ee";
+$upcoming_count_query_result = mysqli_query($conn, $upcoming_count_sql);
+if (mysqli_num_rows($upcoming_count_query_result)) {
+    while ($row = mysqli_fetch_assoc($upcoming_count_query_result)) {
+        $count_of_upcoming_results = $row['upcoming_cnt'];
+    }
+}
 
 /**
  * Get footer data (unique series from series table, year)
@@ -96,8 +129,11 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
 <head>
     <meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php bloginfo('charset'); ?>" />
     <title><?php bloginfo('name'); ?> &raquo; Results</title>
-    <script src="/results/tablesorter/js/jquery-latest.min.js"></script>
+    <!-- <script src="/results/tablesorter/js/jquery-latest.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="index.css">
+
 </head>
 
 <style>
@@ -107,6 +143,32 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
 
     .series_name:hover {
         color: #F1545A;
+    }
+
+    .custom-card {
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .2), 0 6px 20px 0 rgba(0, 0, 0, .19);
+        padding: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        height: 350px;
+        justify-content: space-between;
+    }
+
+    .custom-list {
+        margin-left: 12px;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+    }
+
+    .load-more {
+        text-align: center;
+    }
+
+    hr {
+        margin-top: 5px;
+        margin-bottom: 5px;
     }
 </style>
 
@@ -140,22 +202,23 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                     foreach ($all_races as $key => $values) {
                         $all_races_string = "";
                         foreach ($values as $item) {
-                            $all_races_string .= "<a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a> - ";
+                            $all_races_string .= "<div class='footeryear'><a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a></div> ";
+                            // $all_races_string .= "<a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a> - ";
                         } ?>
                         <div class="td-pb-span6">
                             <div class="custom-card">
-                                <h1><span title="<?php echo $values[0][1]; ?>" class="series_name"><?php echo $key; ?></span></h1>
-                                <p class="qualifying">
+                                <div class="qualifying">
+                                    <h1><span title="<?php echo $values[0][1]; ?>" class="series_name"><?php echo $key; ?></span></h1>
                                     <span class="qual">
                                         <?php echo rtrim($all_races_string, " - "); ?>
                                     </span>
-                                </p>
+                                </div>
 
-                                <p class="qualifying">
+                                <div class="qualifying">
                                     <span class="qual">
                                         <a href="driver-wins.php?series=<?php echo urlencode($key); ?>" style="line-height: 16px;">Most driver wins</a>
                                     </span>
-                                </p>
+                                </div>
                             </div>
                         </div>
                     <?php
@@ -165,14 +228,14 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
             </div>
         </div>
 
-        <div class="td-pb-span4 td-main-sidebar td-pb-border-top" style="padding-right: 40px; margin-top: 21px; padding-bottom: 16px;" role="complementary">
+        <div class="td-pb-span4 td-main-sidebar td-pb-border-top" style="margin-top: 21px;" role="complementary">
             <div class="td-ss-main-sidebar">
                 <aside class="widget widget_meta custom-sidebar">
                     <div class="block-title">
-                        <span>Latest Results</span>
+                        <span style="font-size: 14px !important;">Latest Results</span>
                     </div>
 
-                    <div id="latest_results_area">
+                    <div id="latest_results_area" style="padding-right: 5px;">
                         <?php
                         for ($i = 0; $i < count($latest_results); $i++) { ?>
                             <div class="table-row" style="margin-bottom: 10px;">
@@ -193,8 +256,14 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                         ?>
                     </div>
 
-                    <div class="table-row" style="margin-bottom: 10px;">
-                        <div class='standings-topten'><button class="primary" id="latest_results_more"> Load more</button></div>
+                    <div class="table-row" style="margin-bottom: 10px;" id="latest_load_more">
+                        <div class="load-more">
+                            <button class="btn btn-primary" id="latest_results_more"> Load more</button>
+                            <button class="btn btn-primary" id="latest_results_more_loading" style="display: none;" disabled>
+                                <span class="spinner-border spinner-border-sm"></span>
+                                Loading..
+                            </button>
+                        </div>
                     </div>
 
                 </aside>
@@ -209,7 +278,7 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                         <span>Upcoming races</span>
                     </div>
 
-                    <div id="upcoming_races_area">
+                    <div id="upcoming_races_area" style="padding-right: 5px;">
                         <?php
                         for ($i = 0; $i < count($upcoming_races); $i++) { ?>
                             <div class="table-row" style="margin-bottom: 10px;">
@@ -234,8 +303,14 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                     </div>
 
 
-                    <div class="table-row" style="margin-bottom: 10px;">
-                        <div class='standings-topten'><button class="primary" id="upcoming_races_more"> Load more</button></div>
+                    <div class="table-row" style="margin-bottom: 10px;" id="upcoming_load_more">
+                        <div class="load-more">
+                            <button class="btn btn-primary" id="upcoming_races_more"> Load more</button>
+                            <button class="btn btn-primary" id="upcoming_races_more_loading" style="display: none;" disabled>
+                                <span class="spinner-border spinner-border-sm"></span>
+                                Loading..
+                            </button>
+                        </div>
                     </div>
                 </aside>
 
@@ -274,9 +349,27 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
 </div>
 
 <script>
-    var latest_results_from = <?php echo $latest_results_from; ?>;
+    var latest_results_from = 0;
+    var upcoming_races_from = 0;
+    var count_of_latest_results = <?php echo $count_of_latest_results; ?>;
+    var count_of_upcoming_results = <?php echo $count_of_upcoming_results; ?>;
+
+    // console.log('count of latest results >>>', count_of_latest_results)
+    // console.log('count of upcoming results >>>', count_of_upcoming_results)
+
+    $(document).ready(function() {
+        if (count_of_latest_results <= latest_results_from) {
+            $("#latest_load_more").hide();
+        }
+        if (count_of_upcoming_results <= latest_results_from) {
+            $("#upcoming_load_more").hide();
+        }
+    });
+
     $("#latest_results_more").click(function() {
         latest_results_from += 5;
+        $("#latest_results_more").hide();
+        $("#latest_results_more_loading").show();
 
         $.ajax({
             url: "/database/latest_results_load_more.php",
@@ -288,14 +381,19 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
             success: function(data) {
                 // console.log('latest ajax return result>>', data);
                 $("#latest_results_area").last().append(data);
+                $("#latest_results_more_loading").hide();
+                $("#latest_results_more").show();
+                if (count_of_latest_results <= latest_results_from + 5) {
+                    $("#latest_load_more").hide();
+                }
             }
         });
-
     });
 
-    var upcoming_races_from = <?php echo $upcoming_races_from; ?>;
     $("#upcoming_races_more").click(function() {
         upcoming_races_from += 5;
+        $("#upcoming_races_more").hide();
+        $("#upcoming_races_more_loading").show();
 
         $.ajax({
             url: "/database/upcoming_races_load_more.php",
@@ -307,9 +405,13 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
             success: function(data) {
                 // console.log('upcoming ajax return result>>', data);
                 $("#upcoming_races_area").last().append(data);
+                $("#upcoming_races_more_loading").hide();
+                $("#upcoming_races_more").show();
+                if (count_of_upcoming_results <= upcoming_races_from + 5) {
+                    $("#upcoming_load_more").hide();
+                }
             }
         });
-
     });
 </script>
 
