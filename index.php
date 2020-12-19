@@ -157,13 +157,18 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
     }
 
     .custom-card {
-        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .2), 0 6px 20px 0 rgba(0, 0, 0, .19);
+        box-shadow: 0 0px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgb(0 0 0 / 0%);
         padding: 10px;
         margin-bottom: 10px;
         display: flex;
         flex-direction: column;
-        height: 350px;
         justify-content: space-between;
+    }
+
+    .custom-card:hover {
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .2), 0 6px 20px 0 rgba(0, 0, 0, .19);
+        /* box-shadow: 0 0px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgb(0 0 0 / 0%); */
+        cursor: pointer;
     }
 
     .custom-list {
@@ -207,7 +212,7 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
     <div class="td-pb-row">
         <div class="td-pb-span8 td-main-content">
             <div class="td-ss-main-content">
-                <div class="td-post-content">
+                <div class="td-post-content" style="display: flex; flex-direction: column;">
 
                     <?php
                     foreach ($all_races as $key => $values) {
@@ -216,7 +221,8 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                             $all_races_string .= "<div class='footeryear'><a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a></div> ";
                             // $all_races_string .= "<a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a> - ";
                         } ?>
-                        <div class="td-pb-span6">
+                        <!-- <div class="td-pb-span6"> -->
+                        <div>
                             <div class="custom-card">
                                 <div class="qualifying">
                                     <h1><span title="<?php echo $values[0][1]; ?>" class="series_name"><?php echo $key; ?></span></h1>
