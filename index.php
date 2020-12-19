@@ -275,7 +275,7 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
             <div class="td-ss-main-sidebar">
                 <aside class="widget widget_meta custom-sidebar">
                     <div class="block-title">
-                        <span>Upcoming races</span>
+                        <span style="font-size: 14px !important;">Upcoming races</span>
                     </div>
 
                     <div id="upcoming_races_area" style="padding-right: 5px;">
