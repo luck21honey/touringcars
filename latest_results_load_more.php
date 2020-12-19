@@ -12,12 +12,12 @@ if (mysqli_connect_errno()) {
     exit();
 }
 
-$query = mysqli_query($conc, "SELECT DATE_FORMAT(races.`date`, '%d %b') AS dd, races.`series`, circuits.`circuit`, races.`round`
+$query = mysqli_query($conc, "SELECT DATE_FORMAT(races.`date`, '%d %b') AS dd, races.`series`, circuits.`circuit`, races.`round`, races.`race_id`
 FROM races
 INNER JOIN circuits
 ON races.`track` = circuits.`configuration`
-GROUP BY races.`date`
-ORDER BY races.`date` DESC
+GROUP BY races.`race_id`
+ORDER BY CAST(races.`race_id` AS UNSIGNED) DESC
 LIMIT {$from}, 5");
 
 $return_result = '';

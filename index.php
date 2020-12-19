@@ -28,13 +28,13 @@ while ($row = mysqli_fetch_assoc($all_races_query_result)) {
  * Get latest results
  */
 $latest_results = [];
-$latest_sql = "SELECT DATE_FORMAT(races.`date`, '%d %b') AS dd, races.`series`, circuits.`circuit`, races.`round`
-            FROM races
-            INNER JOIN circuits
-            ON races.`track` = circuits.`configuration`
-            GROUP BY races.`date`
-            ORDER BY races.`date` DESC
-            LIMIT 0, 5";
+$latest_sql = "SELECT DATE_FORMAT(races.`date`, '%d %b') AS dd, races.`series`, circuits.`circuit`, races.`round`, races.`race_id`
+FROM races
+INNER JOIN circuits
+ON races.`track` = circuits.`configuration`
+GROUP BY races.`race_id`
+ORDER BY CAST(races.`race_id` AS UNSIGNED) DESC
+LIMIT 0, 5";
 $latest_query_result = mysqli_query($conn, $latest_sql);
 if (mysqli_num_rows($latest_query_result)) {
     while ($row = mysqli_fetch_assoc($latest_query_result)) {
@@ -96,6 +96,17 @@ if (mysqli_num_rows($upcoming_count_query_result)) {
         $count_of_upcoming_results = $row['upcoming_cnt'];
     }
 }
+
+/**
+ * Get random result
+ */
+$random_data = [];
+$random_sql = "select distinct race_id from races order by rand() limit 1";
+$random_query_result = mysqli_query($conn, $random_sql);
+while ($row = mysqli_fetch_assoc($random_query_result)) {
+    $random_data[$row['race_id']];
+}
+
 
 /**
  * Get footer data (unique series from series table, year)
@@ -241,13 +252,15 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                             <div class="table-row" style="margin-bottom: 10px;">
                                 <div class="custom-list">
                                     <div>
-                                        <span><?php echo  $latest_results[$i]['dd']; ?></span>
-                                        &nbsp; - &nbsp;
-                                        <span><?php echo  $latest_results[$i]['series']; ?></span>
-                                        &nbsp; - &nbsp;
-                                        <span><?php echo  $latest_results[$i]['circuit']; ?></span>
-                                        &nbsp;
-                                        <span>Round <?php echo  $latest_results[$i]['round']; ?></span>
+                                        <a href="race.php?id=<?php echo $latest_results[$i]['race_id']; ?>">
+                                            <span><?php echo  $latest_results[$i]['dd']; ?></span>
+                                            &nbsp; - &nbsp;
+                                            <span><?php echo  $latest_results[$i]['series']; ?></span>
+                                            &nbsp; - &nbsp;
+                                            <span><?php echo  $latest_results[$i]['circuit']; ?></span>
+                                            &nbsp;
+                                            <span>Round <?php echo  $latest_results[$i]['round']; ?></span>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -310,6 +323,24 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
                                 <span class="spinner-border spinner-border-sm"></span>
                                 Loading..
                             </button>
+                        </div>
+                    </div>
+                </aside>
+
+                <?php dynamic_sidebar('HomeS1'); ?>
+            </div>
+
+            <div class="td-ss-main-sidebar">
+                <aside class="widget widget_meta custom-sidebar">
+                    <div class="block-title">
+                        <span style="font-size: 14px !important;">Random result</span>
+                    </div>
+
+                    <div style="padding-right: 5px;">
+                        <div class="table-row" style="margin-bottom: 10px;">
+                            <div class="custom-list">
+                                <span>Random result</span>
+                            </div>
                         </div>
                     </div>
                 </aside>
