@@ -25,13 +25,15 @@ while ($row = mysqli_fetch_assoc($query)) {
     $return_result .= '<div class="table-row" style="margin-bottom: 10px;">
         <div class="custom-list">
             <div>
-                <span>' . $row['dd'] . '</span>
-                &nbsp; - &nbsp;
-                <span>' . $row['series'] . '</span>
-                &nbsp; - &nbsp;
-                <span>' . $row['circuit'] . '</span>
-                &nbsp;
-                <span>Round ' . $row['round'] . '</span>
+                <a href="race.php?id=' . $row['race_id'] . '">
+                    <span>' . $row['dd'] . '</span>
+                    &nbsp; - &nbsp;
+                    <span>' . $row['series'] . '</span>
+                    &nbsp; - &nbsp;
+                    <span>' . $row['circuit'] . '</span>
+                    &nbsp;
+                    <span>Round ' . $row['round'] . '</span>
+                </a>
             </div>
         </div>
     </div>

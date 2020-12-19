@@ -186,6 +186,10 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
         margin-top: 5px;
         margin-bottom: 5px;
     }
+
+    .td-pb-span6::after {
+        clear: both;
+    }
 </style>
 
 
@@ -212,34 +216,68 @@ while ($row = mysqli_fetch_assoc($footer_query_result)) {
     <div class="td-pb-row">
         <div class="td-pb-span8 td-main-content">
             <div class="td-ss-main-content">
-                <div class="td-post-content" style="display: flex; flex-direction: column;">
+                <div class="td-post-content" style="display:flex;">
+                    <div style="width: 50%; margin-right: 10px;">
+                        <?php
+                        $i = 0;
+                        foreach ($all_races as $key => $values) {
+                            $i++; ?>
 
-                    <?php
-                    foreach ($all_races as $key => $values) {
-                        $all_races_string = "";
-                        foreach ($values as $item) {
-                            $all_races_string .= "<div class='footeryear'><a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a></div> ";
-                            // $all_races_string .= "<a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a> - ";
+                            <?php if ($i % 2 == 0) {
+                                $all_races_string = "";
+                                foreach ($values as $item) {
+                                    $all_races_string .= "<div class='footeryear'><a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a></div> ";
+                                } ?>
+                                <div class="custom-card">
+                                    <div class="qualifying">
+                                        <h1><span title="<?php echo $values[0][1]; ?>" class="series_name"><?php echo $key; ?></span></h1>
+                                        <span class="qual">
+                                            <?php echo rtrim($all_races_string, " - "); ?>
+                                        </span>
+                                    </div>
+
+                                    <div class="qualifying">
+                                        <span class="qual">
+                                            <a href="driver-wins.php?series=<?php echo urlencode($key); ?>" style="line-height: 16px;">Most driver wins</a>
+                                        </span>
+                                    </div>
+                                </div>
+                            <?php } ?>
+
+                        <?php
                         } ?>
-                        <!-- <div class="td-pb-span6"> -->
-                        <div>
-                            <div class="custom-card">
-                                <div class="qualifying">
-                                    <h1><span title="<?php echo $values[0][1]; ?>" class="series_name"><?php echo $key; ?></span></h1>
-                                    <span class="qual">
-                                        <?php echo rtrim($all_races_string, " - "); ?>
-                                    </span>
-                                </div>
+                    </div>
 
-                                <div class="qualifying">
-                                    <span class="qual">
-                                        <a href="driver-wins.php?series=<?php echo urlencode($key); ?>" style="line-height: 16px;">Most driver wins</a>
-                                    </span>
+                    <div style="width: 50%;">
+                        <?php
+                        $i = 0;
+                        foreach ($all_races as $key => $values) {
+                            $i++; ?>
+
+                            <?php if ($i % 2 != 0) {
+                                $all_races_string = "";
+                                foreach ($values as $item) {
+                                    $all_races_string .= "<div class='footeryear'><a href='season.php?series=" . urlencode($key) . "&year=" . $item[0] . "' style='line-height: 16px;'>" . $item[0] . "</a></div> ";
+                                } ?>
+                                <div class="custom-card">
+                                    <div class="qualifying">
+                                        <h1><span title="<?php echo $values[0][1]; ?>" class="series_name"><?php echo $key; ?></span></h1>
+                                        <span class="qual">
+                                            <?php echo rtrim($all_races_string, " - "); ?>
+                                        </span>
+                                    </div>
+
+                                    <div class="qualifying">
+                                        <span class="qual">
+                                            <a href="driver-wins.php?series=<?php echo urlencode($key); ?>" style="line-height: 16px;">Most driver wins</a>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    <?php
-                    } ?>
+                            <?php } ?>
+
+                        <?php
+                        } ?>
+                    </div>
 
                 </div>
             </div>
