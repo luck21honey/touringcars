@@ -156,307 +156,307 @@ body {
 }
 </style>
 
-			<link rel="stylesheet/less" type="text/css" href="<?php bloginfo('stylesheet_directory'); ?>/flex-ages.less" />
-			<script src="//cdnjs.cloudflare.com/ajax/libs/less.js/3.0.0/less.min.js" ></script>
-			
-			<script type="text/javascript" src="<?php bloginfo('stylesheet_directory'); ?>/includes/timezone/tzc.min.js"></script>
+<link rel="stylesheet/less" type="text/css" href="<?php bloginfo('stylesheet_directory'); ?>/flex-ages.less" />
+<script src="//cdnjs.cloudflare.com/ajax/libs/less.js/3.0.0/less.min.js" ></script>
 
-                <div class="td-container">
-                    <div class="td-container-border">
-                        <?php the_content(); ?>
+<script type="text/javascript" src="<?php bloginfo('stylesheet_directory'); ?>/includes/timezone/tzc.min.js"></script>
+
+<div class="td-container">
+    <div class="td-container-border">
+        <?php the_content(); ?>
+    </div>
+</div>
+				
+    <!-- CODEXWORLD TO PLACE FUNCTIONING AJAX LOAD MORE CODE HERE -->
+
+    <div class="td-container">
+        <div class="td-container-border wpb_content_element" style="border-left: 1px solid #E5E5E5;">
+            <?php $meta_value = rwmb_meta( 'prefix-text_1' ); ?>
+            <div class='block-title' style='margin-left: 0px;'>
+                <span>Biggest winning margin</span>
+            </div>
+            
+            <?php  { ?>
+            <?php
+                $servername = "localhost:3306";
+                $username = "tcn_results";
+                $password = "BtccWtcr2020!";
+                $dbname = "tcn_results";
+
+                // Create connection
+                $conn = mysqli_connect($servername, $username, $password, $dbname);
+
+                // Check connection
+                if (!$conn) {
+                    die("Connection failed: " . mysqli_connect_error());
+                }
+                mysqli_set_charset($conn,"utf8");
+                
+                $sid = $_GET['series'];
+                $sid = mysqli_real_escape_string($conn, $sid);
+                
+                $id = mysqli_real_escape_string($conn, $meta_value);
+                $id2 = $id;
+                
+                if (empty($_GET)) {
+                    $sql = "SELECT series as cship, year as yr, round as rd, Winner as pilot, track as trvar, car as vehicle, race_id, timed, seed as id FROM marginbigwin LIMIT 25";
+                } else {
+                    
+                    $sql = "SELECT series as cship, year as yr, round as rd, Winner as pilot, track as trvar, car as vehicle, race_id, timed, seed as id FROM marginbigwin WHERE series in ('" . $sid . "') LIMIT 25";
+                }
+
+                if (empty($_GET)) {
+                    $sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races WHERE Result = '" . $id . "'";
+                } else {
+                    $sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races WHERE `Series` in ('" . $sid . "') and Result = '" . $id . "'";
+                }
+                
+                $result = mysqli_query($conn, $sql);
+                $result2 = mysqli_query($conn, $sql2);
+
+            ?>
+            <script src="/results/tablesorter/js/jquery.tablesorter.min.js"></script>
+            <script src="/results/tablesorter/js/jquery.tablesorter.widgets.min.js"></script>
+            <script>
+                jQuery(function(){
+                    jQuery('table').tablesorter({
+                        widgets        : ['columns'],
+                        usNumberFormat : false,
+                        sortReset      : true,
+                        sortRestart    : true
+                    });
+                });
+                
+                jQuery(document).ready(function(){
+                    jQuery(document).on('click','.show_more',function(){
+                        var ID = jQuery(this).attr('id');
+                        jQuery('.show_more').hide();
+                        jQuery('.loding').show();
+                        jQuery.ajax({
+                            type:'POST',
+                            url:'<?php if (!empty($sid)) { echo get_template_directory_uri() . '/ajax_more-margin-biggest.php?series=' . $sid; } else { echo get_template_directory_uri() . '/ajax_more-margin-biggest.php'; } ?>',
+                            data:'id='+ID,
+                            success:function(html){
+                                jQuery('#show_more_main'+ID).remove();
+                                jQuery('.postList').append(html);
+                            }
+                        });
+                    });
+                });
+            </script>
+            
+            <p>&nbsp;&nbsp;<em>Note: Data valid for period between <?php if (mysqli_num_rows($result2) > 0) {while($row = mysqli_fetch_assoc($result2)) { echo $row["mindate"] . " and " . $row["maxdate"]; } } else {	echo "0 results"; }	?></em></p>
+            
+            <aside class='widget widget_meta'>
+            
+                <ul>
+                    <li>
+                        <span class="circuit"><a href="/list-of-biggest-winning-margins">ALL</a></span>
+                        <span class="circuit"><a href="?series=WTCC">WTCC</a></span>
+                        <span class="circuit"><a href="?series=WTCR">WTCR</a></span>
+                        <span class="circuit"><a href="?series=BTCC">BTCC</a></span>
+                        <span class="circuit"><a href="?series=DTM">DTM</a></span>
+                        <span class="circuit"><a href="?series=STCC">STCC</a></span>
+                        <span class="circuit"><a href="?series=TCR EU">TCR Europe</a></span>
+                        <span class="circuit"><a href="?series=TCR DE">TCR Germany</a></span>
+                        <span class="circuit"><a href="?series=TCR IT">TCR Italy</a></span>
+                        <span class="circuit"><a href="?series=TCR UK">TCR UK</a></span>
+                        <span class="circuit"><a href="?series=TCR Asia">TCR Asia</a></span>
+                        <span class="circuit"><a href="?series=TCR Intl">TCR International</a></span>
+                        <span class="circuit"><a href="?series=WC TCR">Pirelli World Challenge TCR</a></span>
+                        <span class="circuit"><a href="?series=ETCC">ETCC</a></span>
+                        <span class="circuit"><a href="?series=ETC Cup">ETC Cup</a></span>
+                        <span class="circuit"><a href="?series=STW Cup">STW Cup</a></span>
+                    </li>
+                </ul>
+                
+            </aside>
+    
+            <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Filter on table contents..." title="Type in a name">
+            
+            <div class="stats-div" id="stats1">
+
+                <div class="container-fluid" style="margin-top: 10px; padding: 0px;">
+                    <div class="tb-row header">
+                        <div class="wrapper text-0">
+                            <div class="wrapper text-0">
+                            <div class="text-series">Rank</div>
+                            <div class="text-series">Series</div>
+                            <div class="text-year">Year</div>
+                            </div>
+                        </div>
+                        <div class="wrapper text-2">
+                            <div class="wrapper text-2">
+                            <div class="text-layout">Rd</div>
+                            <div class="text-driver">Driver</div>
+                            </div>
+                        </div>
+                        <div class="wrapper text-2">
+                            <div class="wrapper text-2">
+                            <div class="text-entrant">Circuit</div>
+                            <div class="text-car"><em>Car</em></div>
+                            </div>
+                        </div>
+                        <div class="wrapper text-4">
+                            <div class="wrapper text-4">
+                            <div class="text-time">Margin (secs)</div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-				
-				<!-- CODEXWORLD TO PLACE FUNCTIONING AJAX LOAD MORE CODE HERE -->
+                    <div class="postList">
 
-				<div class="td-container">
-                    <div class="td-container-border wpb_content_element" style="border-left: 1px solid #E5E5E5;">
-						<?php $meta_value = rwmb_meta( 'prefix-text_1' ); ?>
-						<div class='block-title' style='margin-left: 0px;'>
-							<span>Biggest winning margin</span>
-						</div>
-						
-                        <?php  { ?>
-						<?php
-							$servername = "localhost:3306";
-							$username = "tcn_results";
-							$password = "BtccWtcr2020!";
-							$dbname = "tcn_results";
+                        <?php
 
-							// Create connection
-							$conn = mysqli_connect($servername, $username, $password, $dbname);
-
-							// Check connection
-							if (!$conn) {
-								die("Connection failed: " . mysqli_connect_error());
-							}
-							mysqli_set_charset($conn,"utf8");
-							
-							$sid = $_GET['series'];
-							$sid = mysqli_real_escape_string($conn, $sid);
-							
-							$id = mysqli_real_escape_string($conn, $meta_value);
-							$id2 = $id;
-							
-							if (empty($_GET)) {
-								$sql = "SELECT series as cship, year as yr, round as rd, Winner as pilot, track as trvar, car as vehicle, race_id, timed, seed as id FROM marginbigwin LIMIT 25";
-							} else {
-								
-								$sql = "SELECT series as cship, year as yr, round as rd, Winner as pilot, track as trvar, car as vehicle, race_id, timed, seed as id FROM marginbigwin WHERE series in ('" . $sid . "') LIMIT 25";
-							}
-
-							if (empty($_GET)) {
-								$sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races WHERE Result = '" . $id . "'";
-							} else {
-								$sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races WHERE `Series` in ('" . $sid . "') and Result = '" . $id . "'";
-							}
-                           
-							$result = mysqli_query($conn, $sql);
-							$result2 = mysqli_query($conn, $sql2);
-
-						?>
-						<script src="/results/tablesorter/js/jquery.tablesorter.min.js"></script>
-						<script src="/results/tablesorter/js/jquery.tablesorter.widgets.min.js"></script>
-						<script>
-							jQuery(function(){
-								jQuery('table').tablesorter({
-									widgets        : ['columns'],
-									usNumberFormat : false,
-									sortReset      : true,
-									sortRestart    : true
-								});
-							});
-                            
-                            jQuery(document).ready(function(){
-                                jQuery(document).on('click','.show_more',function(){
-                                    var ID = jQuery(this).attr('id');
-                                    jQuery('.show_more').hide();
-                                    jQuery('.loding').show();
-                                    jQuery.ajax({
-                                        type:'POST',
-										url:'<?php if (!empty($sid)) { echo get_template_directory_uri() . '/ajax_more-margin-biggest.php?series=' . $sid; } else { echo get_template_directory_uri() . '/ajax_more-margin-biggest.php'; } ?>',
-                                        data:'id='+ID,
-                                        success:function(html){
-                                            jQuery('#show_more_main'+ID).remove();
-                                            jQuery('.postList').append(html);
-                                        }
-                                    });
-                                });
-                            });
-						</script>
-						
-						<p>&nbsp;&nbsp;<em>Note: Data valid for period between <?php if (mysqli_num_rows($result2) > 0) {while($row = mysqli_fetch_assoc($result2)) { echo $row["mindate"] . " and " . $row["maxdate"]; } } else {	echo "0 results"; }	?></em></p>
-						
-						<aside class='widget widget_meta'>
-						
-							<ul>
-								<li>
-									<span class="circuit"><a href="/list-of-biggest-winning-margins">ALL</a></span>
-									<span class="circuit"><a href="?series=WTCC">WTCC</a></span>
-									<span class="circuit"><a href="?series=WTCR">WTCR</a></span>
-									<span class="circuit"><a href="?series=BTCC">BTCC</a></span>
-									<span class="circuit"><a href="?series=DTM">DTM</a></span>
-									<span class="circuit"><a href="?series=STCC">STCC</a></span>
-									<span class="circuit"><a href="?series=TCR EU">TCR Europe</a></span>
-									<span class="circuit"><a href="?series=TCR DE">TCR Germany</a></span>
-									<span class="circuit"><a href="?series=TCR IT">TCR Italy</a></span>
-									<span class="circuit"><a href="?series=TCR UK">TCR UK</a></span>
-									<span class="circuit"><a href="?series=TCR Asia">TCR Asia</a></span>
-									<span class="circuit"><a href="?series=TCR Intl">TCR International</a></span>
-									<span class="circuit"><a href="?series=WC TCR">Pirelli World Challenge TCR</a></span>
-									<span class="circuit"><a href="?series=ETCC">ETCC</a></span>
-									<span class="circuit"><a href="?series=ETC Cup">ETC Cup</a></span>
-									<span class="circuit"><a href="?series=STW Cup">STW Cup</a></span>
-								</li>
-							</ul>
-							
-						</aside>
-				
-						<input type="text" id="myInput" onkeyup="myFunction()" placeholder="Filter on table contents..." title="Type in a name">
-						
-						<div class="stats-div" id="stats1">
-
-							<div class="container-fluid" style="margin-top: 10px; padding: 0px;">
-								<div class="tb-row header">
-									<div class="wrapper text-0">
-									  <div class="wrapper text-0">
-										<div class="text-series">Rank</div>
-										<div class="text-series">Series</div>
-										<div class="text-year">Year</div>
-									  </div>
-									</div>
-									<div class="wrapper text-2">
-									  <div class="wrapper text-2">
-										<div class="text-layout">Rd</div>
-										<div class="text-driver">Driver</div>
-									  </div>
-									</div>
-									<div class="wrapper text-2">
-									  <div class="wrapper text-2">
-										<div class="text-entrant">Circuit</div>
-										<div class="text-car"><em>Car</em></div>
-									  </div>
-									</div>
-									<div class="wrapper text-4">
-									  <div class="wrapper text-4">
-										<div class="text-time">Margin (secs)</div>
-									  </div>
-									</div>
-								</div>
-								<div class="postList">
-
-									<?php
-
-									if (mysqli_num_rows($result) > 0) {
-									// output data of each row
-									while($row = mysqli_fetch_assoc($result)) {
-                                        $circuitID = $row['id'];
-										echo "
-												<div class='tb-row'>
-													<div class='wrapper text-0'>
-														<div class='wrapper text-0'>
-															<div class='text-series rownums'></div>
-															<div class='text-series'>
-																" . (( $row["cship"] == 'STW Cup') ? 'STW' : $row["cship"] ) . "
-															</div>
-															<div class='text-year'>
-																" . $row["yr"]. "
-															</div>
-														</div>
-													</div>
-													<div class='wrapper text-2'>
-														<div class='wrapper text-2'>
-															<div class='text-layout' title='" . $row["trvar"] . "'>
-																" . $row["rd"]. "
-															</div>
-															<div class='text-driver'>
-																<a href='/results/statistics/lists/driver-wins.php?series=" . $row["cship"] . "&driver=" . $row["pilot"] . "'>" . $row["pilot"]. "</a>
-															</div>
-														</div>
-													</div>
-													<div class='wrapper text-2'>
-														<div class='wrapper text-2'>
-															<div class='text-entrant' title='" . $row["trvar"] . "'>
-																" . mb_strimwidth($row["trvar"],0,30,"..") . "
-															</div>
-															<div class='text-car'title='" . $row["vehicle"] . "'>
-																<em>" . mb_strimwidth($row["vehicle"],0,27,"...") . "</em>
-															</div>
-														</div>
-													</div>
-													<div class='wrapper text-4'>
-														<div class='wrapper text-4'>
-															<div class='text-time'>
-																" . $row["timed"]. "
-															</div>
-														</div>
-													</div>
-												</div>";
-									}
-									?>
-                                    <tr class="smore-tr">
-                                        <td colspan="7">
-                                            <div class="show_more_main" id="show_more_main<?php echo $circuitID; ?>">
-                                                <span id="<?php echo $circuitID; ?>" class="show_more" title="Load more posts">Show more</span>
-                                                <span class="loding" style="display: none;"><span class="loding_txt">Loading...</span></span>
+                        if (mysqli_num_rows($result) > 0) {
+                        // output data of each row
+                        while($row = mysqli_fetch_assoc($result)) {
+                            $circuitID = $row['id'];
+                            echo "
+                                    <div class='tb-row'>
+                                        <div class='wrapper text-0'>
+                                            <div class='wrapper text-0'>
+                                                <div class='text-series rownums'></div>
+                                                <div class='text-series'>
+                                                    " . (( $row["cship"] == 'STW Cup') ? 'STW' : $row["cship"] ) . "
+                                                </div>
+                                                <div class='text-year'>
+                                                    " . $row["yr"]. "
+                                                </div>
                                             </div>
-                                        </td>
-                                    </tr>
-                                    <?php } else {
-										echo "0 results";
-									}
+                                        </div>
+                                        <div class='wrapper text-2'>
+                                            <div class='wrapper text-2'>
+                                                <div class='text-layout' title='" . $row["trvar"] . "'>
+                                                    " . $row["rd"]. "
+                                                </div>
+                                                <div class='text-driver'>
+                                                    <a href='/results/statistics/lists/driver-wins.php?series=" . $row["cship"] . "&driver=" . $row["pilot"] . "'>" . $row["pilot"]. "</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class='wrapper text-2'>
+                                            <div class='wrapper text-2'>
+                                                <div class='text-entrant' title='" . $row["trvar"] . "'>
+                                                    " . mb_strimwidth($row["trvar"],0,30,"..") . "
+                                                </div>
+                                                <div class='text-car'title='" . $row["vehicle"] . "'>
+                                                    <em>" . mb_strimwidth($row["vehicle"],0,27,"...") . "</em>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class='wrapper text-4'>
+                                            <div class='wrapper text-4'>
+                                                <div class='text-time'>
+                                                    " . $row["timed"]. "
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>";
+                        }
+                        ?>
+                        <tr class="smore-tr">
+                            <td colspan="7">
+                                <div class="show_more_main" id="show_more_main<?php echo $circuitID; ?>">
+                                    <span id="<?php echo $circuitID; ?>" class="show_more" title="Load more posts">Show more</span>
+                                    <span class="loding" style="display: none;"><span class="loding_txt">Loading...</span></span>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php } else {
+                            echo "0 results";
+                        }
 
-									mysqli_close($conn);
+                        mysqli_close($conn);
 
-									?>
-								</div>
-							</div>
-						
-						</div>
-						
-						<script>
-							// Reconcile this properyl with https://www.w3schools.com/howto/howto_js_filter_lists.asp (23.04.2018)
-							
-							function myFunction() {
-							  // Declare variables 
-							  var input, filter, table, tr, td, i, occurrence;
-
-							  input = document.getElementById("myInput");
-							  filter = input.value.toUpperCase();
-							  table = document.getElementById("stats1");
-							  tr = table.getElementsByClassName("tb-row");
-
-							  // Loop through all table rows, and hide those who don't match the search query
-							 for (i = 1; i < tr.length; i++) {
-								 occurrence = false; // Only reset to false once per row.
-								 td = tr[i].getElementsByClassName("wrapper");
-								 for(var j=1; j< td.length; j++){                
-									 currentTd = td[j];
-									 if (currentTd ) {
-										 if (currentTd.innerHTML.toUpperCase().indexOf(filter) > -1) {
-											 tr[i].style.display = "";
-											 occurrence = true;
-										 } 
-									 }
-								 }
-								 if(!occurrence){
-									 tr[i].style.display = "none";
-								 } else {
-									 tr[i].style.display = "";
-								 }
-							 }
-						   }
-						   
-						</script>
-						
+                        ?>
                     </div>
                 </div>
-				
-				<div class="td-container">
-                    <div class="td-container-border">
-						<div class="vc_row wpb_row td-pb-row">
-							<div class="wpb_column vc_column_container td-pb-span12">
-								<div class="wpb_wrapper">
-									<div class="wpb_text_column wpb_content_element ">
-										<div class="wpb_wrapper">
-											<p><em>Tip: Filter on the database results by entering free text into the search box at the top.</em>
-											<br />
-											TouringCars.Net contains the ultimate statistical record of touring car racing on the internet.
-											<br />
-											<br />
-											<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-											<!-- Responsive header -->
-											<ins class="adsbygoogle"
-												 style="display:block"
-												 data-ad-client="ca-pub-3615539307566661"
-												 data-ad-slot="8677277793"
-												 data-ad-format="auto"></ins>
-											<script>
-											(adsbygoogle = window.adsbygoogle || []).push({});
-											</script></p>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
+            
+            </div>
+            
+            <script>
+                // Reconcile this properyl with https://www.w3schools.com/howto/howto_js_filter_lists.asp (23.04.2018)
+                
+                function myFunction() {
+                    // Declare variables 
+                    var input, filter, table, tr, td, i, occurrence;
+
+                    input = document.getElementById("myInput");
+                    filter = input.value.toUpperCase();
+                    table = document.getElementById("stats1");
+                    tr = table.getElementsByClassName("tb-row");
+
+                    // Loop through all table rows, and hide those who don't match the search query
+                    for (i = 1; i < tr.length; i++) {
+                        occurrence = false; // Only reset to false once per row.
+                        td = tr[i].getElementsByClassName("wrapper");
+                        for(var j=1; j< td.length; j++){                
+                            currentTd = td[j];
+                            if (currentTd ) {
+                                if (currentTd.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                    tr[i].style.display = "";
+                                    occurrence = true;
+                                } 
+                            }
+                        }
+                        if(!occurrence){
+                            tr[i].style.display = "none";
+                        } else {
+                            tr[i].style.display = "";
+                        }
+                    }
+                }
+                
+            </script>
+            
+        </div>
+    </div>
+    
+    <div class="td-container">
+        <div class="td-container-border">
+            <div class="vc_row wpb_row td-pb-row">
+                <div class="wpb_column vc_column_container td-pb-span12">
+                    <div class="wpb_wrapper">
+                        <div class="wpb_text_column wpb_content_element ">
+                            <div class="wpb_wrapper">
+                                <p><em>Tip: Filter on the database results by entering free text into the search box at the top.</em>
+                                <br />
+                                TouringCars.Net contains the ultimate statistical record of touring car racing on the internet.
+                                <br />
+                                <br />
+                                <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                                <!-- Responsive header -->
+                                <ins class="adsbygoogle"
+                                        style="display:block"
+                                        data-ad-client="ca-pub-3615539307566661"
+                                        data-ad-slot="8677277793"
+                                        data-ad-format="auto"></ins>
+                                <script>
+                                (adsbygoogle = window.adsbygoogle || []).push({});
+                                </script></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-			<?php } endwhile; ?>
-			
-				<!-- END OF SECTION FOR PLACEMENT OF CODEXWORLD CODE -->
-        <?php }
+<?php } endwhile; ?>
+
+    <!-- END OF SECTION FOR PLACEMENT OF CODEXWORLD CODE -->
+<?php }
     }
 }
 ?>
 
 <script type="text/javascript">
-			var myTZC = new TZC('.tzcontent', {
-				labelText  : 'In your timezone:',
-				phpfile    : 'http://www.touringcars.net/tcntest/wp-content/themes/TCNv3/includes/timezone/tzc.php', /* Not sure this works */
-				cookieName : 'tzco',
-				theme      : 'dark'
-			});
+    var myTZC = new TZC('.tzcontent', {
+        labelText  : 'In your timezone:',
+        phpfile    : 'http://www.touringcars.net/tcntest/wp-content/themes/TCNv3/includes/timezone/tzc.php', /* Not sure this works */
+        cookieName : 'tzco',
+        theme      : 'dark'
+    });
 </script>
 
 <?php
