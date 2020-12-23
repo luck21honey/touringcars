@@ -15,18 +15,50 @@ $id = mysqli_real_escape_string($conn, $meta_value);
 $id2 = $id;
 
 if (empty($_GET)) {
-    $sql = "SELECT series as cship, year as yr, round as rd, Winner as pilot, track as trvar, car as vehicle, race_id, timed, seed as id FROM marginbigwin LIMIT 25";
+    // $sql = "SELECT series as cship, year as yr, round as rd, Winner as pilot, track as trvar, car as vehicle, race_id, timed, seed as id FROM marginbigwin LIMIT 25";
+    $sql = "SELECT r.*, c.layout AS trvar
+            FROM (SELECT series AS cship, `year` AS yr, `round` AS rd, `driver` AS pilot, track, `car` AS vehicle, `race_id`, ROUND(((`time` + (`id` / 100000000)) * 100000000),0) AS `id`
+                FROM races
+                WHERE result=1) r
+            LEFT JOIN circuits c
+            ON c.configuration=r.`track`
+            ORDER BY r.`yr` DESC, r.`rd` DESC";
     $sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races";
     // $sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races WHERE result = '" . $id . "'";
 } else {
-    $sql = "SELECT series as cship, year as yr, round as rd, Winner as pilot, track as trvar, car as vehicle, race_id, timed, seed as id FROM marginbigwin WHERE series in ('" . $sid . "') LIMIT 25";
+    // $sql = "SELECT series as cship, year as yr, round as rd, Winner as pilot, track as trvar, car as vehicle, race_id, timed, seed as id FROM marginbigwin WHERE series in ('" . $sid . "') LIMIT 25";
+    $sql = "SELECT r.*, c.layout AS trvar
+            FROM (SELECT series AS cship, `year` AS yr, `round` AS rd, `driver` AS pilot, track, `car` AS vehicle, `race_id`, ROUND(((`time` + (`id` / 100000000)) * 100000000),0) AS `id`
+                FROM races
+                WHERE result=1) r
+            LEFT JOIN circuits c
+            ON c.configuration=r.`track`
+            ORDER BY r.`yr` DESC, r.`rd` DESC";
     $sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races WHERE `series` in ('" . $sid . "')";
     // $sql2 = "select date_format(min(date),'%D %b %Y') as mindate, date_format(max(date),'%D %b %Y') as maxdate from races WHERE `Series` in ('" . $sid . "') and result = '" . $id . "'";
 }
 
+$sql3 = "SELECT race_id, ROUND((`time` + 0),3) AS `timed`
+FROM races
+WHERE result=2";
+
 
 $result = mysqli_query($conn, $sql);
 $result2 = mysqli_query($conn, $sql2);
+$result3 = mysqli_query($conn, $sql3);
+
+$res3 = [];
+while($row=mysqli_fetch_assoc($result3)) {
+    $res3[$row['race_id']] = $row['timed'];
+}
+
+$res = [];
+while($row=mysqli_fetch_assoc($result)) {
+    $res[] = array('cship' => $row['cship'],'yr' => $row['yr'],'rd' => $row['rd'],'pilot' => $row['pilot'],'track' => $row['track'],'vehicle' => $row['vehicle'],'id' => $row['id'],'trvar' => $row['trvar'],'timed' => $res3[$row['race_id']]);
+}
+
+$timed = array_column($res, 'timed');
+array_multisort($timed, SORT_DESC, $res);
 
 ?>
 <!DOCTYPE html>
@@ -213,45 +245,45 @@ $result2 = mysqli_query($conn, $sql2);
 
                     if (mysqli_num_rows($result) > 0) {
                         // output data of each row
-                        while ($row = mysqli_fetch_assoc($result)) {
-                            $circuitID = $row['id'];
+                        for ($i = 0; $i < 25; $i++) {
+                            $circuitID = $res[$i]['id'];
                             echo "
                                     <div class='tb-row'>
                                         <div class='wrapper text-0'>
                                             <div class='wrapper text-0'>
                                                 <div class='text-series rownums'></div>
                                                 <div class='text-series'>
-                                                    " . (($row["cship"] == 'STW Cup') ? 'STW' : $row["cship"]) . "
+                                                    " . (($res[$i]["cship"] == 'STW Cup') ? 'STW' : $res[$i]["cship"]) . "
                                                 </div>
                                                 <div class='text-year'>
-                                                    " . $row["yr"] . "
+                                                    " . $res[$i]["yr"] . "
                                                 </div>
                                             </div>
                                         </div>
                                         <div class='wrapper text-2'>
                                             <div class='wrapper text-2'>
-                                                <div class='text-layout' title='" . $row["trvar"] . "'>
-                                                    " . $row["rd"] . "
+                                                <div class='text-layout' title='" . $res[$i]["trvar"] . "'>
+                                                    " . $res[$i]["rd"] . "
                                                 </div>
                                                 <div class='text-driver'>
-                                                    <a href='/results/statistics/lists/driver-wins.php?series=" . $row["cship"] . "&driver=" . $row["pilot"] . "'>" . $row["pilot"] . "</a>
+                                                    <a href='/results/statistics/lists/driver-wins.php?series=" . $res[$i]["cship"] . "&driver=" . $res[$i]["pilot"] . "'>" . $res[$i]["pilot"] . "</a>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class='wrapper text-2'>
                                             <div class='wrapper text-2'>
-                                                <div class='text-entrant' title='" . $row["trvar"] . "'>
-                                                    " . mb_strimwidth($row["trvar"], 0, 30, "..") . "
+                                                <div class='text-entrant' title='" . $res[$i]["trvar"] . "'>
+                                                    " . mb_strimwidth($res[$i]["trvar"], 0, 30, "..") . "
                                                 </div>
-                                                <div class='text-car'title='" . $row["vehicle"] . "'>
-                                                    <em>" . mb_strimwidth($row["vehicle"], 0, 27, "...") . "</em>
+                                                <div class='text-car'title='" . $res[$i]["vehicle"] . "'>
+                                                    <em>" . mb_strimwidth($res[$i]["vehicle"], 0, 27, "...") . "</em>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class='wrapper text-4'>
                                             <div class='wrapper text-4'>
                                                 <div class='text-time'>
-                                                    " . $row["timed"] . "
+                                                    " . $res[$i]["timed"] . "
                                                 </div>
                                             </div>
                                         </div>
