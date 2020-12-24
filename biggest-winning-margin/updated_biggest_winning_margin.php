@@ -30,7 +30,7 @@ if (empty($_GET)) {
     $sql = "SELECT r.*, c.layout AS trvar
             FROM (SELECT series AS cship, `year` AS yr, `round` AS rd, `driver` AS pilot, track, `car` AS vehicle, `race_id`, ROUND(((`time` + (`id` / 100000000)) * 100000000),0) AS `id`
                 FROM races
-                WHERE result=1) r
+                WHERE result=1 and `series` in ('" . $sid . "')) r
             LEFT JOIN circuits c
             ON c.configuration=r.`track`
             ORDER BY r.`yr` DESC, r.`rd` DESC";
@@ -48,13 +48,13 @@ $result2 = mysqli_query($conn, $sql2);
 $result3 = mysqli_query($conn, $sql3);
 
 $res3 = [];
-while($row=mysqli_fetch_assoc($result3)) {
+while ($row = mysqli_fetch_assoc($result3)) {
     $res3[$row['race_id']] = $row['timed'];
 }
 
 $res = [];
-while($row=mysqli_fetch_assoc($result)) {
-    $res[] = array('cship' => $row['cship'],'yr' => $row['yr'],'rd' => $row['rd'],'pilot' => $row['pilot'],'track' => $row['track'],'vehicle' => $row['vehicle'],'id' => $row['id'],'trvar' => $row['trvar'],'timed' => $res3[$row['race_id']]);
+while ($row = mysqli_fetch_assoc($result)) {
+    $res[] = array('cship' => $row['cship'], 'yr' => $row['yr'], 'rd' => $row['rd'], 'pilot' => $row['pilot'], 'track' => $row['track'], 'vehicle' => $row['vehicle'], 'id' => $row['id'], 'trvar' => $row['trvar'], 'timed' => $res3[$row['race_id']]);
 }
 
 $timed = array_column($res, 'timed');
@@ -70,7 +70,6 @@ array_multisort($timed, SORT_DESC, $res);
 </head>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/3.0.0/less.min.js"></script>
-<link rel="stylesheet" href="styles.css">
 <link rel="stylesheet/less" type="text/css" href="./flex-ages.less" />
 <style type="text/css">
     .h4h {
@@ -288,24 +287,22 @@ array_multisort($timed, SORT_DESC, $res);
                                             </div>
                                         </div>
                                     </div>";
-                        }
-                    ?>
-                        <tr class="smore-tr">
-                            <td colspan="7">
-                                <div class="show_more_main" id="show_more_main<?php echo $circuitID; ?>">
-                                    <span id="<?php echo $circuitID; ?>" class="show_more" title="Load more posts">Show more</span>
-                                    <span class="loding" style="display: none;"><span class="loding_txt">Loading...</span></span>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php } else {
+                        } ?>
+                </div>
+                <div class="td-pb-row">
+                    <div class="show_more_main" id="show_more_main<?php echo $circuitID; ?>">
+                        <span id="<?php echo $circuitID; ?>" class="show_more" title="Load more posts">Show more</span>
+                        <span class="loding" style="display: none;"><span class="loding_txt">Loading...</span></span>
+                    </div>
+                </div>
+
+            <?php } else {
                         echo "0 results";
                     }
 
                     mysqli_close($conn);
 
-                    ?>
-                </div>
+            ?>
             </div>
 
         </div>
@@ -370,25 +367,77 @@ array_multisort($timed, SORT_DESC, $res);
         }
     }
 
-    jQuery(document).ready(function() {
-        jQuery(document).on('click', '.show_more', function() {
-            var ID = jQuery(this).attr('id');
+    $(document).ready(function() {
+        var res = <?php echo json_encode($res); ?>;
+        var from = 0;
+
+        $(".show_more").click(function() {
+
+            // console.log('clicked load more>>>>>>>')
+
             jQuery('.show_more').hide();
             jQuery('.loding').show();
-            jQuery.ajax({
-                type: 'POST',
-                url: '<?php if (!empty($sid)) {
-                            echo '/ajax_more-margin-biggest.php?series=' . $sid;
-                        } else {
-                            echo '/ajax_more-margin-biggest.php';
-                        } ?>',
-                data: 'id=' + ID,
-                success: function(html) {
-                    jQuery('#show_more_main' + ID).remove();
-                    jQuery('.postList').append(html);
-                }
-            });
-        });
+            from += 25;
+            var j = 25;
+            var html = '';
+            while (j > 0) {
+                j--;
+                var cship = res[from]["cship"] == 'STW Cup' ? 'STW' : res[from]["cship"];
+                html += "<div class='tb-row'>" +
+                    "<div class='wrapper text-0'>" +
+                    "<div class='wrapper text-0'>" +
+                    "<div class='text-series rownums'></div>" +
+                    "<div class='text-series'>" +
+                    cship +
+                    "</div>" +
+                    "<div class='text-year'>" +
+                    res[from]["yr"] +
+                    "</div>" +
+                    "</div>" +
+                    "</div>" +
+                    "<div class='wrapper text-2'>" +
+                    "<div class='wrapper text-2'>" +
+                    "<div class='text-layout'>" +
+                    res[from]["rd"] +
+                    "</div>" +
+                    "<div class='text-driver'>" +
+                    "<a href='/results/statistics/lists/driver-wins.php?series=" + res[from]["cship"] + "&driver=" + res[from]["pilot"] + "'>" + res[from]["pilot"] + "</a>" +
+                    "</div>" +
+                    "</div>" +
+                    "</div>" +
+                    "<div class='wrapper text-2'>" +
+                    "<div class='wrapper text-2'>" +
+                    "<div class='text-entrant' title='" + res[from]["trvar"] + "'>" +
+                    res[from]["trvar"].substring(0, 31) + "..." +
+                    "</div>" +
+                    "<div class='text-car' title='" + res[from]["vehicle"] + "'>" +
+                    "<em>" + res[from]["vehicle"].substring(0, 24) + "..." + "</em>" +
+                    "</div>" +
+                    "</div>" +
+                    "</div>" +
+                    "<div class='wrapper text-4'>" +
+                    "<div class='wrapper text-4'>" +
+                    "<div class='text-time'>" +
+                    res[from]["timed"] +
+                    "</div>" +
+                    "</div>" +
+                    "</div>" +
+                    "</div>";
+
+                from++;
+            }
+
+            // console.log('html>>>>>>>>', html)
+            $('.show_more').show();
+            $('.loding').hide();
+
+            $('.postList').append(html);
+            if (res.length < from) {
+                $('.show_more').hide();
+            }
+
+        })
+
     });
 </script>
 
